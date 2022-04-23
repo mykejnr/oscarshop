@@ -1,0 +1,3 @@
+# This is an http file that is used for manually
+# testing the api in vs code, with vscode api extention
+http://127.0.0.1:8000/api/products/
