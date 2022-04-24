@@ -1,11 +1,7 @@
+import { /*useDispatch,*/ useSelector } from "react-redux"
 import { NavLink } from 'react-router-dom';
 import { FaSearch, FaUser, FaShoppingBag } from 'react-icons/fa';
-import { connect } from 'react-redux';
 
-// aka. mapStateToProps
-const selectState = state => {
-  return { product_types: state.product_types}
-}
 
 const ProductType = ({product_type}) => (
     <li>
@@ -15,15 +11,20 @@ const ProductType = ({product_type}) => (
     </li>
 )
 
-const ProductTypesNav_ = ({product_types}) => (
-    <nav className="">
-        <ul className="list-none flex">
-            {product_types.map(pt => <ProductType key={pt.id} product_type={pt} />)}
-        </ul>
-    </nav>
-);
 
-const ProductTypesNav = connect(selectState)(ProductTypesNav_);
+const ProductTypesNav = () => {
+  const product_types = useSelector(state => state.global.product_types);
+
+  return (
+      <nav className="">
+          <ul className="list-none flex">
+              {product_types.map(pt => <ProductType key={pt.id} product_type={pt} />)}
+          </ul>
+      </nav>
+
+    )
+};
+
 
 const Header = () => (
   <header className="header shadow">

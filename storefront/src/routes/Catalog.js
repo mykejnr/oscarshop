@@ -1,46 +1,40 @@
-import { connect } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux"
+
 import Stars from '../components/stars';
 import { Button } from "../components/button";
-import { addToCart, getProducts } from "../actions";
-import { useEffect } from "react";
+import { addToCart, getProducts } from "../actions/index";
 
 
-// aka. mapStateToProps
-const selectState = state => {
-    return { products: state.products }
-}
+const Product = ({ product }) => {
+  const dispatch = useDispatch()
 
-const mapDispatchToProps = dispatch => {
-    return {
-        addProductToCart: product => dispatch(addToCart(product))
-    }
-}
-
-
-const Product_ = ({product, addProductToCart}) => (
-  <div className="Product">
-    <div className="w-full mb-4">
-      <img className="w-full w-4/5 mx-auto" src={product.image} alt="display of product" />
+  return (
+    <div className="Product">
+      <div className="w-full mb-4">
+        <img className="w-full w-4/5 mx-auto" src={product.image} alt="display of product" />
+      </div>
+      <div className="text-center">
+        <div className="mb-2">{product.title}</div>
+        <Stars count={5} rating={product.rating} />
+          <div className="mt-2">{"GHS" + product.price}</div>
+      </div>
+      <div className="mt-3">
+        <Button onClick={() => dispatch(addToCart(product))} />
+      </div>
     </div>
-    <div className="text-center">
-      <div className="mb-2">{product.title}</div>
-      <Stars count={5} rating={product.rating} />
-        <div className="mt-2">{"GHS" + product.price}</div>
-    </div>
-    <div className="mt-3">
-      <Button onClick={() => addProductToCart(product)} />
-    </div>
-  </div>
-);
+  );
+};
 
 
-const Product = connect(null, mapDispatchToProps)(Product_)
+export const ProductListing = () => {
+  const dispatch = useDispatch()
+  const products = useSelector(state => state.products)
 
-
-const ProductListing_ = ({ products, getProducts }) => {
   useEffect(() => {
-    getProducts();
-  }, [getProducts])
+    dispatch(getProducts())
+    // eslint-disable-next-line
+  }, [])
 
   const product_list = products.results || [];
 
@@ -52,9 +46,6 @@ const ProductListing_ = ({ products, getProducts }) => {
     </div>
   )
 };
-
-
-const ProductListing = connect(selectState, { getProducts })(ProductListing_)
 
 
 function Catalog() {

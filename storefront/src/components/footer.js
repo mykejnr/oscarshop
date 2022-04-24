@@ -1,15 +1,7 @@
-import { connect } from "react-redux"
+import { /*useDispatch,*/ useSelector } from "react-redux"
 import { Link } from "react-router-dom";
 import { CgFacebook } from 'react-icons/cg';
 import { FaInstagram, FaWhatsapp } from 'react-icons/fa';
-
-// aka. mapStateToProps
-const selectState = state => {
-  return {
-    product_types: state.product_types,
-    categories: state.categories,
-  }
-}
 
 
 const FooterLink = ({url, text}) => (
@@ -22,28 +14,30 @@ const SectionHeading = ({heading}) => (
 )
 
 
-const SiteLinks_ = ({product_types, categories}) => (
-  <div className="flex justify-between gap-20 shrink-0">
-    <div>
-      <SectionHeading heading="Product" />
-      {product_types.map(pt => <FooterLink key={pt.id} url="/catalogue" text={pt.name} /> )}
-    </div>
-    <div>
-      <SectionHeading heading="Categories" />
-      {categories.map(ct => <FooterLink key={ct.id} url="/catalogue" text={ct.name} /> )}
-    </div>
-    <div>
-      <SectionHeading heading="Links" />
-      <FooterLink url="" text="Contact Us" />
-      <FooterLink url="" text="About Us" />
-      <FooterLink url="" text="Privacy Policy" />
-      <FooterLink url="" text="Terms of Use" />
-    </div>
-  </div>
-)
+const SiteLinks = () => {
+  const global_state = useSelector(state => state.global)
+  const {product_types, categories} = global_state;
 
-
-const SiteLinks = connect(selectState)(SiteLinks_);
+  return (
+    <div className="flex justify-between gap-20 shrink-0">
+      <div>
+        <SectionHeading heading="Product" />
+        {product_types.map(pt => <FooterLink key={pt.id} url="/catalogue" text={pt.name} /> )}
+      </div>
+      <div>
+        <SectionHeading heading="Categories" />
+        {categories.map(ct => <FooterLink key={ct.id} url="/catalogue" text={ct.name} /> )}
+      </div>
+      <div>
+        <SectionHeading heading="Links" />
+        <FooterLink url="" text="Contact Us" />
+        <FooterLink url="" text="About Us" />
+        <FooterLink url="" text="Privacy Policy" />
+        <FooterLink url="" text="Terms of Use" />
+      </div>
+    </div>
+  );
+}
 
 
 const SubscribeForm = () => (
