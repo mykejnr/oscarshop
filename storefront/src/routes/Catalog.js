@@ -6,21 +6,21 @@ import { Button } from "../components/button";
 import { addToCart, getProducts } from "../actions/index";
 
 
-const Product = ({ product }) => {
+export const Product = ({ product }) => {
   const dispatch = useDispatch()
 
   return (
-    <div className="Product">
+    <div className="Product" data-testid="product" title={product.title}>
       <div className="w-full mb-4">
-        <img className="w-full w-4/5 mx-auto" src={product.image} alt="display of product" />
+        <img data-testid="product-image" className="w-full w-4/5 mx-auto" src={product.image} alt="display of product" />
       </div>
       <div className="text-center">
         <div className="mb-2">{product.title}</div>
         <Stars count={5} rating={product.rating} />
-          <div className="mt-2">{"GHS" + product.price}</div>
+        <div className="mt-2">{"GHS" + product.price}</div>
       </div>
       <div className="mt-3">
-        <Button onClick={() => dispatch(addToCart(product))} />
+        <Button text="Add to cart" onClick={() => dispatch(addToCart(product))} />
       </div>
     </div>
   );

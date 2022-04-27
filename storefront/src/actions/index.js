@@ -1,9 +1,10 @@
 import { createAction, createAsyncThunk } from "@reduxjs/toolkit";
-import {CART_ADD_ITEM, CART_UPDATE_ITEM, CATALOGUE_FETCH_PRODUCTS} from '../constants/action-types'
+import {CART_ADD_ITEM, CART_UPDATE_ITEM, CATALOGUE_FETCH_PRODUCTS, DATA_RESET_STATE} from '../constants/action-types'
 
 
 export const addToCart = createAction(CART_ADD_ITEM);
 export const updateCartItem = createAction(CART_UPDATE_ITEM);
+export const resetState = createAction(DATA_RESET_STATE);
 
 export const getProducts = createAsyncThunk(CATALOGUE_FETCH_PRODUCTS, () => {
     return fetch("http://127.0.0.1:8000/api/products/")

@@ -1,7 +1,7 @@
 import { combineReducers } from 'redux';
 import { createReducer, createSlice } from '@reduxjs/toolkit';
-import { CATALOGUE } from "../constants/action-types";
-import { addToCart, getProducts, updateCartItem } from "../actions";
+import { CATALOGUE, DATA_RESET_STATE } from "../constants/action-types";
+import { addToCart, getProducts, resetState, updateCartItem } from "../actions";
 
 
 const globalState = {
@@ -75,14 +75,11 @@ const cartReducer = createReducer([], (builder) => {
   builder
     .addCase(addToCart, (state, action) => {
         const product = {...action.payload, quantity: 1};
-        state.push(product)
+        state.unshift(product)
     })
-    .addCase(updateCartItem, (state, action) => {
-        let cart = state;
-        const cart_product = cart[action.payload.cart_index]
-        const updated_product = {...cart_product, quantity: cart_product.quantity + 1}
-
-        cart[action.payload.cart_index] = updated_product;
+    .addCase(updateCartItem, (state, { payload }) => {
+        // add +1 to the product at index "payload.cart_index"
+        ++state[payload.cart_index].quantity;
     })
     .addDefaultCase((state) => state)
 });
@@ -100,8 +97,15 @@ const productListingSlice = createSlice({
 })
 
 
-export default combineReducers({
+const _combinedReducer = combineReducers({
   cart: cartReducer,
   products: productListingSlice.reducer,
   global: globalReducer,
 })
+
+export default (state, action) => {
+    if (action.type === DATA_RESET_STATE) {
+        state = {}
+    }
+    return _combinedReducer(state, action);
+}
