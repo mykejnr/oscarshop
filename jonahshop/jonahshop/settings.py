@@ -40,6 +40,9 @@ EMAIL_FILE_PATH = BASE_DIR / 'fakeinbox'
 # Application definition
 
 INSTALLED_APPS = [
+    # our own apps
+    'shopapi',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -89,7 +92,11 @@ INSTALLED_APPS = [
     'django_tables2',
 
     'rest_framework',
-    'shopapi',
+
+    # api schema docs generation
+    'drf_spectacular',
+    'drf_spectacular_sidecar',
+
     "corsheaders",
 ]
 
@@ -222,6 +229,14 @@ OSCAR_DEFAULT_CURRENCY = "GH₵"
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 12,
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'SWAGGER_UI_DIST': 'SIDECAR',  # shorthand to use the sidecar instead
+    'SWAGGER_UI_FAVICON_HREF': 'SIDECAR',
+    'REDOC_DIST': 'SIDECAR',
+    # OTHER SETTINGS
 }
 
 if DEBUG:

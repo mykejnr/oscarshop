@@ -1,10 +1,6 @@
-from django.shortcuts import render
-from django.contrib.auth.models import User, Group
-
 from oscar.core.loading import get_model
 
 from rest_framework import viewsets
-from rest_framework import permissions
 
 from shopapi.serializers import ProductSerializer
 # Create your views here.
