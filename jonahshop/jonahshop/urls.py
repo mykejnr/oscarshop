@@ -25,6 +25,7 @@ from shopapi import views
 
 router = routers.DefaultRouter()
 router.register(r'products', views.ProductViewSet, 'product')
+router.register(r'basket', views.BasketViewSet, basename='basket')
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
