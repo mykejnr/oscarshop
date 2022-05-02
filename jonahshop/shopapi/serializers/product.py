@@ -40,16 +40,3 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
         thumbnail = get_thumbnailer().generate_thumbnail(source, size="200x200")
         request = self.context.get('request')# request.build_absolute_uri()
         return request.build_absolute_uri(thumbnail.url)
-
-
-class AddProductSerializer(serializers.Serializer):
-    product_id = serializers.IntegerField(min_value=1)
-    quantity = serializers.IntegerField(min_value=1)
-
-
-class BasketSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = get_model('basket', 'Basket')
-        fields= [
-            'id', 'owner', 'status',
-        ]
