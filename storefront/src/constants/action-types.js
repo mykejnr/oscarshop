@@ -1,5 +1,6 @@
-export const CART_ADD_ITEM = "CART/ADD_ITEM";
-export const CART_UPDATE_ITEM = "CART/UPDATE_ITEM";
+export const CART = 'CART'
+export const CART_ADD_ITEM = `${CART}/ADD_ITEM`;
+export const CART_UPDATE_ITEM = `${CART}/UPDATE_ITEM`;
 
 export const CATALOGUE = 'CATALOGUE'
 export const CATALOGUE_FETCH_PRODUCTS = `${CATALOGUE}/FETCH_PRODUCTS`

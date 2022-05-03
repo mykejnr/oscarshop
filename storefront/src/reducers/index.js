@@ -1,7 +1,8 @@
 import { combineReducers } from 'redux';
 import { createReducer, createSlice } from '@reduxjs/toolkit';
 import { CATALOGUE, DATA_RESET_STATE } from "../constants/action-types";
-import { addToCart, getProducts, resetState, updateCartItem } from "../actions";
+import { getProducts } from "../actions";
+import { cartReducer } from './cart_reducer';
 
 
 const globalState = {
@@ -71,20 +72,6 @@ const globalReducer = createReducer(globalState, (builder) => {
 })
 
 
-const cartReducer = createReducer([], (builder) => {
-  builder
-    .addCase(addToCart, (state, action) => {
-        const product = {...action.payload, quantity: 1};
-        state.unshift(product)
-    })
-    .addCase(updateCartItem, (state, { payload }) => {
-        // add +1 to the product at index "payload.cart_index"
-        ++state[payload.cart_index].quantity;
-    })
-    .addDefaultCase((state) => state)
-});
-
-
 const productListingSlice = createSlice({
   name: CATALOGUE,
   initialState: {},
@@ -103,9 +90,12 @@ const _combinedReducer = combineReducers({
   global: globalReducer,
 })
 
-export default (state, action) => {
+const rootReducer = (state, action) => {
     if (action.type === DATA_RESET_STATE) {
         state = {}
     }
     return _combinedReducer(state, action);
 }
+
+
+export default rootReducer

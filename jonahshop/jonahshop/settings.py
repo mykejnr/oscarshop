@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-from distutils.log import debug
 from pathlib import Path
 import os
 
@@ -245,3 +244,4 @@ if DEBUG:
         "http://localhost:3000",
         "http://127.0.0.1:3000",
     )
+    CORS_ALLOW_CREDENTIALS = True
