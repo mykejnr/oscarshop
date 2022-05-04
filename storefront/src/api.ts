@@ -32,5 +32,5 @@ type APIName = keyof typeof API
  * @returns A url endpoint
  */
 export const getApi = (name: APIName, param?: string): string => {
-    return API[name].replace('{param}', param)
+    return API[name].replace('{param}', param || "")
 }

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { addToCart } from "../actions";
+import { addToCart, fetchBasket } from "../actions";
 import { CART } from '../constants/action-types';
 
 
@@ -55,8 +55,12 @@ export const cartSlice = createSlice({
     builder.addCase(addToCart.fulfilled, (state, action) => {
       _updateCart(state, action)
     })
+    .addCase(fetchBasket.fulfilled, (state, action) => {
+      return action.payload // replace state with new basket
+    })
     .addDefaultCase((state) => state)
   },
 })
+
 
 export const cartReducer = cartSlice.reducer

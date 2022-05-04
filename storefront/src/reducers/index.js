@@ -3,6 +3,7 @@ import { createReducer, createSlice } from '@reduxjs/toolkit';
 import { CATALOGUE, DATA_RESET_STATE } from "../constants/action-types";
 import { getProducts } from "../actions";
 import { cartReducer } from './cart_reducer';
+import uiReducer from './ui_reducer';
 
 
 const globalState = {
@@ -88,6 +89,7 @@ const _combinedReducer = combineReducers({
   cart: cartReducer,
   products: productListingSlice.reducer,
   global: globalReducer,
+  ui: uiReducer,
 })
 
 const rootReducer = (state, action) => {

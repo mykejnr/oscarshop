@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Header from "./components/header";
 import Footer from "./components/footer";
+import MiniCart from "./components/mini-cart";
 
 
 const Home = lazy(() => import('./routes/Home'));
@@ -13,6 +14,7 @@ const Layout = () => (
     <Header />
     <Outlet />
     <Footer />
+    <MiniCart />
   </div>
 
 )

@@ -3,13 +3,59 @@ interface IBasketAddProducOptions {
     quantity: number
 }
 
-interface IProduct {
+interface IBasketLineProduct {
     url: string,
     id: number,
     title: string,
-    rating: number,
     price: number,
+    image: string 
+}
+
+interface IProduct extends IBasketLineProduct {
+    rating: number,
     availability: boolean,
     is_parent: boolean,
-    image: string 
+}
+
+interface IBasketLine {
+    id: number,
+    line_reference: string,
+    quantity: number,
+    product: IBasketLineProduct,
+}
+
+interface IBasket {
+    url: string,
+    id: number,
+    status: 'OPEN' | 'SAVED' | 'CLOSED',
+    total_price: number,
+    total_quantity: number,
+    lines: [IBasketLine]
+}
+
+
+interface iUI {
+    miniCartVisible: boolean,
+}
+
+interface IProductType {
+    id: number,
+    name: string
+}
+
+interface ICategoryType {
+    id: number,
+    name: string
+}
+
+interface IGlobalState {
+    product_types: IProductType[],
+    categories: ICategoryType[],
+}
+
+interface IRootState {
+    cart: IBasket,
+    products: IProduct[],
+    ui: iUI,
+    global: IGlobalState,
 }

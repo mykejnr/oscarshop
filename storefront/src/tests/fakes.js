@@ -48,3 +48,38 @@ export const fakeAddToCartResponse = {
     }
   }
 }
+
+
+export const fakeBasket = {
+  url: '/path/to/basket/',
+  id: 12,
+  status: 'OPEN',
+  total_price: 323.34,
+  total_quantity: 32,
+  lines: [
+    {
+      id: 3,
+      line_reference: '14_3',
+      quantity: 1,
+      product: {
+        url: '/path/to/product34/',
+        id: 11,
+        title: 'Mesns Watch',
+        price: 23.3,
+        image: '/path/to/image/thumnail/'
+      }
+    },
+    {
+      id: 2,
+      line_reference: '12_2',
+      quantity: 1,
+      product: {
+        url: '/path/to/product34/',
+        id: 13,
+        title: 'Mesns Watch',
+        price: 233.3,
+        image: '/path/to/image/thumnail23/'
+      }
+    },
+  ]
+}
