@@ -1,5 +1,6 @@
 *.pyc
 /jonahshop/db.sqlite3
+/jonahshop/dump.rdb
 .DS_Store
 .env
 */settings/local.py

@@ -16,7 +16,9 @@ import os
 from oscar.defaults import *
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent
+
+AUTH_USER_MODEL = 'userapi.USER'
 
 
 # Quick-start development settings - unsuitable for production
@@ -40,6 +42,7 @@ EMAIL_FILE_PATH = BASE_DIR / 'fakeinbox'
 
 INSTALLED_APPS = [
     # our own apps
+    'userapi',
     'shopapi',
 
     'django.contrib.admin',
@@ -229,6 +232,9 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 12,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.SessionAuthentication',
+    ],
 }
 
 SPECTACULAR_SETTINGS = {
