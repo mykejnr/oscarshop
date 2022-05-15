@@ -37,6 +37,7 @@ interface IBasket {
 
 interface iUI {
     miniCartVisible: boolean,
+    miniUserVisible: boolean,
     activeDialog: import("../dialog/dialog").TDialogName,
 }
 
