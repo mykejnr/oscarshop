@@ -370,3 +370,34 @@ class UpdateUserTestCase(APITestCase):
 
         self.assertEqual(user.first_name, update_data['first_name'])
         self.assertEqual(user.last_name, update_data['last_name'])
+
+
+class GetUserTestCase(APITestCase):
+    def test_get_user(self):
+        loginData = {
+            'email': 'getUser@testmail.com',
+            'password': "testGetUserPaswrord",
+        }
+        data = {
+            'first_name': 'Jonathan',
+            'last_name': 'Borris'
+        }
+        data.update(loginData)
+
+        User.objects.create_user(**data)
+
+        self.client.post(reverse('login'), loginData)
+        response = self.client.get(reverse('getuser'))
+
+        data.pop('password')
+        self.assertDictEqual(
+            response.json(), data
+        )
+
+    def test_reject_un_auth_user(self):
+        # no user is logged in
+        response = self.client.get(reverse('getuser'))
+        self.assertEqual(
+            status.HTTP_403_FORBIDDEN,
+            response.status_code
+        )

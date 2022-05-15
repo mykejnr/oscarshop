@@ -56,9 +56,19 @@ interface IGlobalState {
     categories: ICategoryType[],
 }
 
+interface IUser {
+    auth: boolean
+    profile?: {
+        first_name: string,
+        last_name: string,
+        email: string
+    }
+}
+
 interface IRootState {
     cart: IBasket,
     products: IProduct[],
     ui: iUI,
     global: IGlobalState,
+    user: IUser,
 }

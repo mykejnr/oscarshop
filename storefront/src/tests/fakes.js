@@ -83,3 +83,9 @@ export const fakeBasket = {
     },
   ]
 }
+
+export const fakeUser = {
+  first_name: "Boakye-Yiadom",
+  last_name: "Abdul Mumuni",
+  email: "boakyeYiadom@gmail.com",
+}

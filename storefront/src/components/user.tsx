@@ -92,6 +92,7 @@ export const MiniProfile = () => {
   let caption;
   const dispatch = useDispatch()
   const selfRef = useRef<HTMLDivElement>(null)
+  const authUser = useSelector((state: IRootState) => state.user)
 
   useEffect(() => {
     selfRef.current?.focus()
@@ -105,9 +106,10 @@ export const MiniProfile = () => {
     dispatch(toggleMiniUser())
   }
 
-  if (false) {
+  if (authUser.auth) {
     AuthUser = SignedInUser
-    caption = ["Michael Mensah", "mykejnr4@gmail.com"]
+    const uName = `${authUser.profile?.first_name} ${authUser.profile?.last_name}`.trim()
+    caption = [uName, authUser.profile?.email]
   } else {
     AuthUser = SignedOutUser
     caption = ["Oops!", "You are not signed in"]
@@ -121,8 +123,8 @@ export const MiniProfile = () => {
       className="bg-white shadow-md rounded-md text-sm w-[280px] z-50"
     >
       <div className="w-full text-white bg-accent-500 p-4 rounded-t-md text-center">
-        <div className="text-base font-bold">{caption[0]}</div>
-        <div>{caption[1]}</div>
+        <div data-testid='username' className="text-base font-bold">{caption[0]}</div>
+        <div data-testid='user-email'>{caption[1]}</div>
       </div>
       <AuthUser />
     </div>

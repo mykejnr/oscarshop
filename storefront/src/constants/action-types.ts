@@ -13,3 +13,6 @@ export const UI = "UI"
 export const UI_TOGGLE_MINI_CART = `${UI}/TOGGLE_MINI_CART`
 export const UI_TOGGLE_MINI_USER = `${UI}/TOGGLE_MINI_USER}`
 export const UI_SHOW_DIALOG = `${UI}/SHOW_DIALOG`
+
+export const USER = 'USER'
+export const USER_GET_USER = `${USER}/GET_USER`

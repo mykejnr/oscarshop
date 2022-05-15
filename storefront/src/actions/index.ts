@@ -21,3 +21,5 @@ export const getProducts = createAsyncThunk(CATALOGUE_FETCH_PRODUCTS, () => {
 export const toggleMiniCart = createAction(UI_TOGGLE_MINI_CART);
 export const toggleMiniUser = createAction(UI_TOGGLE_MINI_USER);
 export const showDialog = createAction<TDialogName>(UI_SHOW_DIALOG);
+
+export { getUser } from "./user-action"

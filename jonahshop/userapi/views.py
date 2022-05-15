@@ -113,6 +113,17 @@ def confirm_password_reset(request):
     return Response()
 
 
+@api_view(['GET'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def getuser(request):
+    """
+    Get the auth user for the current session
+    """
+    user_ser = UserSerializer(request.user)
+    return Response(user_ser.data)
+
+
 @api_view(['POST'])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])

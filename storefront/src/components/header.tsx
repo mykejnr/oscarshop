@@ -2,8 +2,9 @@ import { useDispatch, useSelector } from "react-redux"
 import { NavLink } from 'react-router-dom';
 import { FaSearch, FaUser, FaShoppingBag } from 'react-icons/fa';
 import { IconType } from "react-icons";
-import { toggleMiniCart, toggleMiniUser } from "../actions";
+import { getUser, toggleMiniCart, toggleMiniUser } from "../actions";
 import { MiniProfile } from "./user";
+import { useEffect } from "react";
 
 
 const ProductType = ({product_type}: {product_type: IProductType}) => (
@@ -29,15 +30,46 @@ const ProductTypesNav = () => {
 };
 
 
-const MiniButtons = ({Icon, onClick}: {Icon: IconType, onClick?: any}) => (
-  <button className="px-5 inline-block" onClick={onClick}>
+type MiniButonProps = {
+  Icon: IconType,
+  onClick?: () => void,
+  testid?: string,
+  title?: string
+}
+
+const MiniButton = ({Icon, onClick, testid, title}: MiniButonProps) => (
+  <button title={title} data-testid={testid} className="px-5 inline-block" onClick={onClick}>
     <Icon color="#888"/>
   </button>
 )
 
 
-const Header = () => {
+export const MiniButtons = () => {
   const dispatch = useDispatch()
+  const uiState = useSelector((state:IRootState) => state.ui)
+
+  useEffect(() => {
+    dispatch(getUser())
+  // eslint-disable-next-line
+  }, [])
+
+  return (
+    <>
+      <div className="actions flex justify-between items-center">
+        <MiniButton title="Search" Icon={FaSearch} />
+        <MiniButton title="Account" testid="show-user" Icon={FaUser} onClick={() => dispatch(toggleMiniUser())} />
+        <MiniButton title="Cart" Icon={FaShoppingBag} onClick={() => dispatch(toggleMiniCart())} />
+      </div>
+      {
+        uiState.miniUserVisible &&
+        <div className="fixed top-5 right-5"><MiniProfile /></div>
+      }
+    </>
+  )
+}
+
+
+const Header = () => {
   const uiState = useSelector((state:IRootState) => state.ui)
 
   return(
@@ -45,16 +77,8 @@ const Header = () => {
       <div className="border-box px-10 flex justify-between max-w-7xl mx-auto">
         <div className="logo my-auto text-sky-500 font-bold text-lg">JonaShop</div>
         <ProductTypesNav />
-        <div className="actions flex justify-between items-center">
-          <MiniButtons Icon={FaSearch} />
-          <MiniButtons Icon={FaUser} onClick={() => dispatch(toggleMiniUser())} />
-          <MiniButtons Icon={FaShoppingBag} onClick={() => dispatch(toggleMiniCart())} />
-        </div>
+        <MiniButtons />
       </div>
-      {
-        uiState.miniUserVisible &&
-        <div className="fixed top-5 right-5"><MiniProfile /></div>
-      }
     </header>
   )
 }

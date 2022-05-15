@@ -1,8 +1,9 @@
-import { combineReducers } from 'redux';
+import { CombinedState, combineReducers } from 'redux';
 import { createReducer, createSlice } from '@reduxjs/toolkit';
 import { CATALOGUE, DATA_RESET_STATE } from "../constants/action-types";
 import { getProducts } from "../actions";
 import { cartReducer } from './cart_reducer';
+import { userReducer } from './user_reducer';
 import uiReducer from './ui_reducer';
 
 
@@ -90,9 +91,10 @@ const _combinedReducer = combineReducers({
   products: productListingSlice.reducer,
   global: globalReducer,
   ui: uiReducer,
+  user: userReducer,
 })
 
-const rootReducer = (state, action) => {
+const rootReducer = (state: any, action: any) => {
     if (action.type === DATA_RESET_STATE) {
         state = {}
     }
