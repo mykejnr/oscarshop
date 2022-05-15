@@ -1,8 +1,8 @@
-import { /*useDispatch,*/ useDispatch, useSelector } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { NavLink } from 'react-router-dom';
 import { FaSearch, FaUser, FaShoppingBag } from 'react-icons/fa';
 import { IconType } from "react-icons";
-import { toggleMiniCart } from "../actions";
+import { showDialog, toggleMiniCart } from "../actions";
 
 
 const ProductType = ({product_type}: {product_type: IProductType}) => (
@@ -45,7 +45,7 @@ const Header = () => {
         <ProductTypesNav />
         <div className="actions flex justify-between items-center">
           <MiniButtons Icon={FaSearch} />
-          <MiniButtons Icon={FaUser} />
+          <MiniButtons Icon={FaUser} onClick={() => dispatch(showDialog('signup'))} />
           <MiniButtons Icon={FaShoppingBag} onClick={() => dispatch(toggleMiniCart())} />
         </div>
       </div>

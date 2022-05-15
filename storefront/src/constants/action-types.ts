@@ -11,3 +11,4 @@ export const DATA_RESET_SESSION = 'DATA/RESET_SESSION';
 
 export const UI = "UI"
 export const UI_TOGGLE_MINI_CART = `${UI}/TOOGLE_MINI_CART`
+export const UI_SHOW_DIALOG = `${UI}/SHOW_DIALOG`

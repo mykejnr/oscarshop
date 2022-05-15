@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom
 import Header from "./components/header";
 import Footer from "./components/footer";
 import MiniCart from "./components/mini-cart";
+import Dialog from "./dialog/dialog";
 
 
 const Home = lazy(() => import('./routes/Home'));
@@ -15,6 +16,7 @@ const Layout = () => (
     <Outlet />
     <Footer />
     <MiniCart />
+    <Dialog />
   </div>
 
 )

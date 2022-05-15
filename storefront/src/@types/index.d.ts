@@ -1,3 +1,4 @@
+
 interface IBasketAddProducOptions {
     product_id: number,
     quantity: number
@@ -36,6 +37,7 @@ interface IBasket {
 
 interface iUI {
     miniCartVisible: boolean,
+    activeDialog: import("../dialog/dialog").TDialogName,
 }
 
 interface IProductType {
