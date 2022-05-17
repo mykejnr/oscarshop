@@ -16,3 +16,6 @@ export const UI_SHOW_DIALOG = `${UI}/SHOW_DIALOG`
 
 export const USER = 'USER'
 export const USER_GET_USER = `${USER}/GET_USER`
+
+export const MESSAGE = 'MESSAGE'
+export const MESSAGE_NEW = `${MESSAGE}/NEW`

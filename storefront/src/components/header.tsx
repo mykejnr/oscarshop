@@ -70,8 +70,6 @@ export const MiniButtons = () => {
 
 
 const Header = () => {
-  const uiState = useSelector((state:IRootState) => state.ui)
-
   return(
     <header className="header shadow z-50">
       <div className="border-box px-10 flex justify-between max-w-7xl mx-auto">

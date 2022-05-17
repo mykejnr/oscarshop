@@ -1,9 +1,9 @@
-import {render, fireEvent, screen, waitFor, findByTestId } from '@testing-library/react'
+import {render, fireEvent, screen } from '@testing-library/react'
 import { Provider } from 'react-redux';
 import {setupServer} from 'msw/node'
 import { rest } from 'msw';
 
-import { resetState, toggleMiniUser } from '../actions';
+import { getUser, resetState } from '../actions';
 import store from "../store/index";
 
 import { getApi } from '../api';
@@ -22,7 +22,10 @@ const server = setupServer(
 )
 
 beforeAll(() => server.listen())
-beforeEach(() => store.dispatch(resetState()))
+beforeEach(() => {
+    store.dispatch(resetState())
+    jest.restoreAllMocks()
+})
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
@@ -34,19 +37,75 @@ const renderHeader = () => (
   )
 )
 
-// We have done all we can the ui dosen't seem to render on
-// time for the test to pass
-xtest("Should get and render mini user component mount", async () => {
 
-    await act(() => renderHeader() as never)
-    // await waitFor(() => store.getState().user.auth === true)
-    await act(() => store.dispatch(toggleMiniUser()))
-
-    const elem = await screen.findByTestId("username")
-
-    const username = `${fakeUser.first_name} ${fakeUser.last_name}`.trim()
-    expect(elem.textContent).toBe(username)
+test("getUser action 400", async () => {
+    await store.dispatch(getUser())
+    const user = store.getState().user
+    expect(user.auth).toBeTruthy()
+    expect(user.profile).toEqual(fakeUser)
 })
 
-test("Should set user state to false cart", () => {
+
+test("getUser action 403", async () => {
+    server.use(
+        rest.get(getApi('user'), (req, res, ctx) => {
+        return res(ctx.status(403))
+        })
+    )
+
+    await store.dispatch(getUser())
+    const user = store.getState().user
+    expect(user.auth).toBeFalsy()
+
+})
+
+
+test("Fetch and render user info on mount - Integratoin test", async () => {
+    const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
+    fetchSpy.mockImplementation(
+        () => Promise.resolve({
+            json: () => Promise.resolve(fakeUser),
+            status: 200,
+            ok: true,
+        })
+    )
+
+    await act(() => Promise.resolve(renderHeader() as never))
+    const U = store.getState().user
+    
+    // user state has been updated
+    expect(U.auth).toBeTruthy()
+
+    // show Mini profile info popup
+    const btnElem = screen.getByTestId('show-user')
+    fireEvent.click(btnElem)
+
+    const username = screen.getByTestId('username')
+    expect(username.textContent).toBe(
+        `${fakeUser.first_name} ${fakeUser.last_name}`.trim()
+    )
+})
+
+test("Render no user if request returns 403 - integration test", async () => {
+    const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
+    fetchSpy.mockImplementation(
+        () => Promise.resolve({
+            json: () => Promise.resolve(),
+            status: 403,
+        })
+    )
+
+    await act(() => Promise.resolve(renderHeader() as never))
+    const U = store.getState().user
+    
+    // user state has been updated
+    expect(U.auth).toBeFalsy()
+
+    // show Mini profile info popup
+    const btnElem = screen.getByTestId('show-user')
+    fireEvent.click(btnElem)
+
+    const username = screen.getByTestId('username')
+    expect(username.textContent).toBe("Oops!")
+
 })
