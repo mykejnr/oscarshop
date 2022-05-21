@@ -1,12 +1,17 @@
 import * as http_utils from '../utils/http'
 import * as utils from '../utils/'
 import { newMessage } from '../actions';
+import { Action } from 'redux';
 
 
-let thunkAPI =  {
-    dispatch: () => {}
-};
+let dispatchMock: jest.Mock;
+
 let csrf_token = jest.spyOn(utils, 'getCSRFcookie')
+
+beforeEach(() => {
+    dispatchMock = jest.fn()
+    dispatchMock.mockImplementation((action: Action) => {})
+})
 
 
 afterEach(() => {
@@ -37,7 +42,7 @@ test("Make request with fetch api expected arguments", () => {
         })
     )
 
-    http_utils.makeRequest(method)({url, options, thunkAPI})
+    http_utils.makeRequest(method)({url, options, dispatch: dispatchMock})
     expect(fetchSpy).toHaveBeenCalledWith(url, {...defaultOpts, ...options})
 })
 
@@ -54,7 +59,7 @@ test('Returns return value of fetch', async () => {
         })
     )
 
-    const expectVal = await http_utils.makeRequest('GET')({url, thunkAPI})
+    const expectVal = await http_utils.makeRequest('GET')({url, dispatch: dispatchMock})
     
     expect(await expectVal.json()).toEqual(returnVal)
 })
@@ -69,11 +74,10 @@ test("Catch and dispatch fetch errors as messages", () => {
         throw err
     })
 
-    const dispSpy = jest.spyOn(thunkAPI, 'dispatch')
 
-    const expectVal = http_utils.makeRequest('GET')({url, thunkAPI})
+    const expectVal = http_utils.makeRequest('GET')({url, dispatch: dispatchMock})
 
-    expect(dispSpy).toHaveBeenCalledWith(newMessage(err.message))
+    expect(dispatchMock).toHaveBeenCalledWith(newMessage(err.message))
 })
 
 test("Handle unhandled http error codes", async () => {
@@ -86,13 +90,12 @@ test("Handle unhandled http error codes", async () => {
             ok: false
         })
     )
-    const dispSpy = jest.spyOn(thunkAPI, 'dispatch')
 
     await http_utils.get({
         url: '/url/url/',
-        thunkAPI,
+        dispatch: dispatchMock,
         ignore_errors: [403, 401, 500]
     })
 
-    expect(dispSpy).toHaveBeenCalledWith(newMessage(message))
+    expect(dispatchMock).toHaveBeenCalledWith(newMessage(message))
 })

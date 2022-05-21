@@ -1,3 +1,4 @@
+import { Action } from 'redux';
 import { getCSRFcookie } from '.';
 import { newMessage } from '../actions';
 
@@ -5,12 +6,12 @@ import { newMessage } from '../actions';
 type RequestArgs = {
     url: string,
     options?: RequestInit,
-    thunkAPI?: any,
+    dispatch?: (action: Action) => {},
     ignore_errors?: number[]
 }
 
 
-export const makeRequest = (method: string) => async ({url, options, thunkAPI, ignore_errors}: RequestArgs) => {
+export const makeRequest = (method: string) => async ({url, options, dispatch, ignore_errors}: RequestArgs) => {
     const defaultOpts: RequestInit = {
         method,
         credentials: 'same-origin',
@@ -35,14 +36,14 @@ export const makeRequest = (method: string) => async ({url, options, thunkAPI, i
             // we show a generic message
             const json = (await response.json()) || {}
             const msg = json.message || "Request failed. Please try again later."
-            thunkAPI?.dispatch(newMessage(msg))
+            dispatch && dispatch(newMessage(msg))
         }
         return response
     } catch(e: any) {
         // deal with client side errors (like network connectivity) generically
         // Catch the error (client side erros) and show the error message
         // We still return a custom Response to have a uniform API
-        thunkAPI?.dispatch(newMessage(e.message))
+        dispatch && dispatch(newMessage(e.message))
         const res = new Response(null, {status: 600})
         return new Promise<Response>(resolve => resolve(res))
     }

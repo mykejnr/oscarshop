@@ -72,3 +72,30 @@ interface IRootState {
     global: IGlobalState,
     user: IUser,
 }
+
+interface ISignupReturn {
+    first_name: string
+    last_name: string
+    email: string,
+}
+
+interface ISignupInit {
+    first_name: string
+    last_name: string
+    email: string,
+    password: string,
+    confirm_password: string
+}
+
+interface ISignupResponseErrors {
+    first_name?: string[],
+    last_name?: string[],
+    email?: string[],
+    password?: string[],
+    confirm_password?: string[]
+}
+
+interface ISignupResponse {
+    ok: boolean,
+    errors?: ISignupResponseErrors
+}

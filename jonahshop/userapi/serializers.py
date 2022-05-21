@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
+from rest_framework.validators import UniqueValidator
 
 User = get_user_model()
 
@@ -37,7 +38,13 @@ class ConfirmReseSerializer(serializers.Serializer):
 class SignupSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=100, required=True)
     last_name = serializers.CharField(max_length=100, required=True)
-    email = serializers.EmailField(required=True)
+    email = serializers.EmailField(
+        required=True,
+        validators=[UniqueValidator(
+            User.objects.all(),
+            message="This email address is used by another user."
+        )]
+    )
     password = serializers.CharField(required=True)
     confirm_password = serializers.CharField(required=True)
 

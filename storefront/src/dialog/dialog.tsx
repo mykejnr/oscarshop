@@ -6,7 +6,8 @@ import { IconType } from 'react-icons';
 import { showDialog } from "../actions";
 
 type TDialogHeadProps = {
-  title: string
+  title: string,
+  Icon: IconType
 }
 type TDialogTuple = [() => JSX.Element, string, IconType]
 export type TDialogName = keyof typeof dialogs
@@ -20,15 +21,13 @@ const dialogs = asRecord({
 })
 
 
-const DialogHead = ({title}: TDialogHeadProps ) => {
+const DialogHead = ({title, Icon}: TDialogHeadProps ) => {
   const dispatch = useDispatch()
 
   return (
     <div className='text-white flex justify-between bg-accent-500 p-3 '>
-      <FaUser size='20' />
-      <div className='font-bold'>
-        {title}
-      </div>
+      <Icon size='20' />
+      <div className='font-bold'>{title}</div>
       <button
         className='text-gray-300 hover:text-white'
         onClick={() => dispatch(showDialog('nodialog'))}
@@ -44,7 +43,8 @@ const DialogHead = ({title}: TDialogHeadProps ) => {
 const Dialog = () => {
 
   const uiState = useSelector((state: IRootState) => state.ui);
-  const ActiveDialog = dialogs[uiState.activeDialog][0]
+  const dialog_props = dialogs[uiState.activeDialog]
+  const [ActiveDialog, title, Icon] = dialog_props
 
   if (uiState.activeDialog === 'nodialog') {
     return <ActiveDialog />
@@ -52,7 +52,7 @@ const Dialog = () => {
   return (
     <div className='fixed inset-0 bg-white bg-opacity-70'>
       <div className='absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 shadow-2xl'>
-        <DialogHead title='Sign up' />
+        <DialogHead title={title} Icon={Icon} />
         <ActiveDialog />
       </div>
     </div>

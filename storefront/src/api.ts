@@ -19,6 +19,7 @@ const API = {
     getBasket: '/api/basket/{param}/',
     basketAdd: '/api/basket/add_product/',
     user: '/api/user/',
+    signup: '/api/user/signup/'
 }
 
 

@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { getUser } from "../actions";
 import { USER } from '../constants/action-types';
 
@@ -10,17 +10,15 @@ const initialState: IUser = {
 }
 
 
-/**
- * Not a reducer per se
- * Helper function: We move logic of adding data
- * to the cart to this function for clarity
- */
-
-
 export const userSlice = createSlice({
   name: USER,
   initialState,
-  reducers: {},
+  reducers: {
+    signup(state, action: PayloadAction<ISignupReturn>) {
+      state.auth = true
+      state.profile = action.payload
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(getUser.fulfilled, (state, action) => {
         if (action.payload) {
@@ -35,4 +33,5 @@ export const userSlice = createSlice({
 })
 
 
+export const { signup } = userSlice.actions
 export const userReducer = userSlice.reducer

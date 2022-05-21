@@ -57,6 +57,25 @@ class SignupTestCase(APITestCase):
         user = get_user(self.client)
         self.assertTrue(user.is_authenticated)
 
+    def test_error_on_duplicate_email(self):
+        data = {
+            'first_name': "Michaelxxx",
+            'last_name': "Mensahxxx",
+            "email": "duplicate@test.com",
+            "password": "Password",
+            "confirm_password": "Password",
+        }
+        self.client.post(reverse('signup'), data=data)
+        response = self.client.post(reverse('signup'), data=data)
+
+        self.assertTrue(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+        self.assertEqual(
+            response.json()['email'][0],
+            "This email address is used by another user."
+        )
 
 class LoginTestCase(APITestCase):
 

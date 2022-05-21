@@ -1,7 +1,3 @@
-import { newMessage } from '../actions';
-// import store from './store'
-
-
 export const formatPrice = (n: number): string => {
     return (new Intl.NumberFormat('en-gh', { style: 'currency', currency: 'GHS' }).format(n)).toString()
 }
@@ -23,3 +19,14 @@ export const getCSRFcookie = () => {
 
     return cookieValue;
 };
+
+/**
+ * Convert a name (valid variable) to a more approriate version that
+ * can be use as label names for inputs
+ * @param inputName a name of the input (which may contain understores)
+ * @returns 
+ */
+export const nameToLabel = (inputName: string): string => {
+  const capitalized = inputName.charAt(0).toUpperCase() + inputName.slice(1);
+  return capitalized.replace('_', " ")
+}
