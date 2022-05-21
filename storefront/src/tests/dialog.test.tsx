@@ -14,7 +14,7 @@ beforeEach(() => store.dispatch(resetState()))
 test("Should show dialog", () => {
   render (
     <Provider store={store}>
-      <Dialog />
+      <Dialog name='signup'/>
     </Provider>
   )
   act(() => store.dispatch(showDialog('signup')))
@@ -27,7 +27,7 @@ test("Should show dialog", () => {
 test("Should unmount dialog on close event", () => {
   render (
     <Provider store={store}>
-      <Dialog />
+      <Dialog name='signup'/>
     </Provider>
   )
 

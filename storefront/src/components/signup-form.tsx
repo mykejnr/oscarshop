@@ -97,7 +97,7 @@ const Form = () => {
             <Input {...getField("email")} type="email" {...useFormProps} required/>
             <Input {...getField("password")} type="password" {...useFormProps} required/>
             <Input {...getField('confirm_password')} type="password" {...useFormProps} required/>
-            <div className="mt-8">
+            <div className="mt-6">
               <button data-testid='signup-submit' type="submit" className={submitS} disabled={disabled}>
                 {
                   isSubmitting && <span className="absolute left-2 top-[10px]"><Spinner /></span>

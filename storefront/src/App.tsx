@@ -16,9 +16,8 @@ const Layout = () => (
     <Outlet />
     <Footer />
     <MiniCart />
-    <Dialog />
+    <Dialog name="signup" />
   </div>
-
 )
 
 const App = () => (

@@ -1,4 +1,5 @@
 import { useDispatch, useSelector } from "react-redux"
+import { CSSTransition } from 'react-transition-group';
 import { NavLink } from 'react-router-dom';
 import { FaSearch, FaUser, FaShoppingBag } from 'react-icons/fa';
 import { IconType } from "react-icons";
@@ -60,10 +61,9 @@ export const MiniButtons = () => {
         <MiniButton title="Account" testid="show-user" Icon={FaUser} onClick={() => dispatch(toggleMiniUser())} />
         <MiniButton title="Cart" Icon={FaShoppingBag} onClick={() => dispatch(toggleMiniCart())} />
       </div>
-      {
-        uiState.miniUserVisible &&
+      <CSSTransition in={uiState.miniUserVisible} timeout={200} classNames="appear" unmountOnExit>
         <div className="fixed top-5 right-5"><MiniProfile /></div>
-      }
+      </CSSTransition>
     </>
   )
 }

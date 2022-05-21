@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux"
-
+import { Transition } from 'react-transition-group';
 import SignupForm from '../components/signup-form'
 import { FaWindowClose, FaUser } from 'react-icons/fa';
 import { IconType } from 'react-icons';
@@ -40,22 +40,35 @@ const DialogHead = ({title, Icon}: TDialogHeadProps ) => {
 }
 
 
-const Dialog = () => {
+type TDialogProps = {
+  name: keyof typeof dialogs
+}
 
+const Dialog = ({name}: TDialogProps) => {
   const uiState = useSelector((state: IRootState) => state.ui);
-  const dialog_props = dialogs[uiState.activeDialog]
+  const dialog_props = dialogs[name]
   const [ActiveDialog, title, Icon] = dialog_props
 
-  if (uiState.activeDialog === 'nodialog') {
-    return <ActiveDialog />
-  }
+
+  let styles = 'fixed inset-0 bg-white bg-opacity-70 flex justify-center items-center'
+  const show = name === uiState.activeDialog
+
+  const cStyles = 'dialog shadow-2xl'
   return (
-    <div className='fixed inset-0 bg-white bg-opacity-70'>
-      <div className='absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 shadow-2xl'>
-        <DialogHead title={title} Icon={Icon} />
-        <ActiveDialog />
-      </div>
-    </div>
+    // <div>
+    <Transition in={show} timeout={300} unmountOnExit>
+      {state => (
+        <div className={styles}>
+          <div className={`${cStyles} dialog-${state}`} >
+            <DialogHead title={title} Icon={Icon} />
+            <ActiveDialog />
+          </div>
+        </div>
+      )
+      }
+    </Transition>
+
+    // </div>
   )
 }
 
