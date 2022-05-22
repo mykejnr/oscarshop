@@ -10,7 +10,7 @@ import { getApi } from '../api';
 import { fakeBasket, fakeUser } from './fakes';
 import { act } from 'react-dom/test-utils';
 import { MiniButtons } from '../components/header';
-import SignupForm from '../components/signup-form'
+import { SignupForm } from '../forms';
 import { requestSignup } from '../utils/user';
 import { nameToLabel } from '../utils';
 import * as user_utils from '../utils/user'
@@ -182,13 +182,13 @@ test("Signup - update store with user - Integrated test", async () => {
             return res(ctx.json(profile))
         })
     )
-    renderSignupForm();
     jest.spyOn(user_utils, 'requestSignup').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
             dispatch(signup(profile))
             rs({ok: true})
         })
     )
+    renderSignupForm();
 
     for (const key in data) {
         const pHolder = nameToLabel(key)
@@ -206,8 +206,10 @@ test("Signup - update store with user - Integrated test", async () => {
 })
 
 test('Signup - Render errors on signup fail', async () => {
+    const data = getSignupInit();
     const email_err = 'Email not unique'
     const first_err = "Firstname required"
+
     jest.spyOn(user_utils, 'requestSignup').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
             rs({
@@ -221,6 +223,12 @@ test('Signup - Render errors on signup fail', async () => {
     )
 
     renderSignupForm()
+
+    for (const key in data) {
+        const pHolder = nameToLabel(key)
+        const value = data[key as keyof typeof data]
+        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
+    }
 
     const elem = screen.getByTestId('signup-submit')
     await act(() => fireEvent.click(elem) as never)

@@ -1,4 +1,5 @@
-import {render, fireEvent, waitFor, screen} from '@testing-library/react'
+import {render, fireEvent, screen, waitFor} from '@testing-library/react'
+import '@testing-library/jest-dom'
 import { Provider } from 'react-redux';
 
 import { resetState, showDialog } from '../actions';
@@ -24,7 +25,7 @@ test("Should show dialog", () => {
   expect(elem.tagName.toLowerCase()).toEqual('form')
 })
 
-test("Should unmount dialog on close event", () => {
+test("Should unmount dialog on close event", async () => {
   render (
     <Provider store={store}>
       <Dialog name='signup'/>
@@ -36,8 +37,8 @@ test("Should unmount dialog on close event", () => {
   expect(elem.tagName.toLowerCase()).toEqual('form')
 
   const bElem = screen.getByTestId('close-dialog')
-  act(() => fireEvent.click(bElem) as never)
-  const elemNo = screen.getByTestId('nodialog')
-  expect(elemNo.tagName.toLowerCase()).toEqual('div')
+  await act(() => fireEvent.click(bElem) as never)
+
+  await waitFor(() => expect(bElem).not.toBeInTheDocument())
   
 })

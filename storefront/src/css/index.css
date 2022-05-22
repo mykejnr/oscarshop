@@ -15,6 +15,7 @@
   }
 }
 
+/* General styles for button */
 button {
   transition: all 100ms linear;
 }
@@ -23,6 +24,29 @@ button:active {
   transform: scale(90%);
 }
 
+.button { /* buttons/input[submit] with 'button' class */
+  @apply bg-accent-400;
+  display: block;
+  cursor: pointer;
+  border-color: bg-accent-400;
+  border-radius: 4px;
+  padding: 5px 10px;
+  text-align: center;
+  color: #fff
+}
+.button:hover {
+  background-color: bg-accent-500;
+}
+.button:disabled {
+  @apply bg-accent-300;
+  color: #777;
+}
+.button:disabled:hover {
+  @apply bg-accent-300;
+}
+
+
+/* react-transition-group classes for animation */
 .appear-enter {
   opacity: 0;
   transform: scale(0.9);

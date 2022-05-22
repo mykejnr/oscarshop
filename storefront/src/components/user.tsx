@@ -72,7 +72,10 @@ const SignedOutUser = () => {
       <div className="text-center my-7">
         Sign in to preserve your cart for as long as it takes
       </div>
-      <button className={bStyles} onClick={() => {}}>
+      <button
+        className={bStyles}
+        onClick={() => dispatch(showDialog('login'))}
+      >
         Sign in
       </button>
       <div className="italic text-center text-sm pt-2">

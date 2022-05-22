@@ -1,9 +1,9 @@
 import { useDispatch, useSelector } from "react-redux"
 import { Transition } from 'react-transition-group';
-import SignupForm from '../components/signup-form'
 import { FaWindowClose, FaUser } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { showDialog } from "../actions";
+import { LoginForm, SignupForm } from "../forms";
 
 type TDialogHeadProps = {
   title: string,
@@ -17,6 +17,7 @@ const asRecord = <T extends Record<string, TDialogTuple>>(arg: T): T => arg
 
 const dialogs = asRecord({
   'signup': [SignupForm, 'Signup', FaUser],
+  'login': [LoginForm, 'Login', FaUser],
   'nodialog': [() => <div data-testid='nodialog'></div>, '', FaWindowClose]
 })
 
@@ -55,7 +56,6 @@ const Dialog = ({name}: TDialogProps) => {
 
   const cStyles = 'dialog shadow-2xl'
   return (
-    // <div>
     <Transition in={show} timeout={300} unmountOnExit>
       {state => (
         <div className={styles}>
@@ -67,8 +67,6 @@ const Dialog = ({name}: TDialogProps) => {
       )
       }
     </Transition>
-
-    // </div>
   )
 }
 

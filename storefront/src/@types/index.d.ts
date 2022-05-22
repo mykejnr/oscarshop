@@ -79,7 +79,7 @@ interface ISignupReturn {
     email: string,
 }
 
-interface ISignupInit {
+interface ISignupData extends Record<string, string> {
     first_name: string
     last_name: string
     email: string,
@@ -98,4 +98,14 @@ interface ISignupResponseErrors {
 interface ISignupResponse {
     ok: boolean,
     errors?: ISignupResponseErrors
+}
+
+interface ILoginFormData extends Record<string, string> {
+  email: string,
+  password: string,
+}
+
+type TFormDataResponse<TFormData> = {
+    ok: boolean,
+    errors?: Record<keyof TFormData, string[]>
 }

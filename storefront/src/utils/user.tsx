@@ -8,13 +8,14 @@ import { signup } from '../reducers/user_reducer';
 // in the future
 export type LTDispatch = (action: Action) => {}
 
-export const requestSignup = async (data: ISignupInit, dispatch: LTDispatch): Promise<ISignupResponse> => {
+export const requestSignup = async (data: ISignupData, dispatch: LTDispatch): Promise<TFormDataResponse<ISignupData>> => {
     const url = getApi('signup')
     const ignore_errors = [400]
 
     const response = await post({
         url,
         ignore_errors,
+        dispatch,
         options: {
             body: JSON.stringify(data)
         }
@@ -28,7 +29,7 @@ export const requestSignup = async (data: ISignupInit, dispatch: LTDispatch): Pr
         }
     }
 
-    let res: ISignupResponse = {ok: false}
+    let res = {ok: false, errors: undefined}
 
     if (response.status === 400) {
         res.errors = json
@@ -36,3 +37,10 @@ export const requestSignup = async (data: ISignupInit, dispatch: LTDispatch): Pr
 
     return res
 }
+
+
+export const requestLogin = async (data: ILoginFormData, dispatch: LTDispatch): Promise<TFormDataResponse<ILoginFormData>> =>{
+    return Promise.resolve({
+        ok: true
+    })
+} 
