@@ -10,11 +10,11 @@ import { getApi } from '../api';
 import { fakeBasket, fakeUser } from './fakes';
 import { act } from 'react-dom/test-utils';
 import { MiniButtons } from '../components/header';
-import { SignupForm } from '../forms';
-import { requestSignup } from '../utils/user';
+import { LoginForm, SignupForm } from '../forms';
+import { requestSignup, requestLogin } from '../utils/user';
 import { nameToLabel } from '../utils';
 import * as user_utils from '../utils/user'
-import { signup } from '../reducers/user_reducer';
+import { login, signup } from '../reducers/user_reducer';
 
 
 const server = setupServer(
@@ -50,12 +50,25 @@ const renderSignupForm = () => {
     )
 }
 
+const renderLoginForm = () => {
+    render(
+        <Provider store={store}>
+            <LoginForm />
+        </Provider>
+    )
+}
+
 const getSignupInit = () => ({
     first_name: "James",
     last_name: "Yeboah",
     email: "jamesyeb@gmail.com",
     password: "1233addf!",
     confirm_password: "1233addf!",
+})
+
+const getLoginInit = () => ({
+    email: 'mykejnr4@ma.com',
+    password: 'PasW$ed'
 })
 
 
@@ -196,7 +209,7 @@ test("Signup - update store with user - Integrated test", async () => {
         fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
     }
 
-    const elem = screen.getByTestId('signup-submit')
+    const elem = screen.getByTestId('genform-submit')
     await act(() => fireEvent.click(elem) as never)
 
     const U = store.getState().user
@@ -230,8 +243,177 @@ test('Signup - Render errors on signup fail', async () => {
         fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
     }
 
-    const elem = screen.getByTestId('signup-submit')
+    const elem = screen.getByTestId('genform-submit')
     await act(() => fireEvent.click(elem) as never)
 
     screen.getByText(email_err)
+})
+
+test('requestLogin update store on success', async () => {
+    const data = getSignupInit()
+    const profile = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+    }
+
+    server.use(
+        rest.post(getApi('login'), (req, res, ctx) => {
+            return res(ctx.json(profile))
+        })
+    )
+
+    const loginData = getLoginInit()
+    const res = await requestLogin(loginData, store.dispatch)
+    const U = store.getState().user
+
+    expect(U.auth).toBeTruthy()
+    expect(U.profile).toEqual(profile)
+    expect(res.ok).toBeTruthy()
+})
+
+test("requestLogin failed server validation", async () => {
+    const err = {
+        email: ['Email incorrect']
+    }
+
+    server.use(
+        rest.post(getApi('login'), (req, res, ctx) => {
+            return res(ctx.json(err), ctx.status(400))
+        })
+    )
+
+    const loginData = getLoginInit()
+    const res = await requestLogin(loginData, store.dispatch)
+
+    expect(res.ok).toBeFalsy()
+    expect(res.errors).toEqual(err)
+})
+
+test("requestLogin authentication failed", async () => {
+    const d = {email: 'jame@mail.com', password: 'ddd'}
+    const err = {
+        message: 'Login Failed. Incorrect email or password.'
+    }
+
+    server.use(
+        rest.post(getApi('login'), (req, res, ctx) => {
+            return res(ctx.json(err), ctx.status(401))
+        })
+    )
+
+    const res = await requestLogin(d, store.dispatch)
+
+    expect(res.ok).toBeFalsy()
+    expect(res.errors).toEqual({'password': [err.message]})
+})
+
+test("Login - update store with user - Integrated test", async () => {
+    const data = getSignupInit();
+    const profile = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+    }
+    server.use(
+        rest.post(getApi('login'), (req, res, ctx) => {
+            return res(ctx.json(profile))
+        })
+    )
+    jest.spyOn(user_utils, 'requestLogin').mockImplementation(
+        (data, dispatch) => new Promise((rs, rj) => {
+            dispatch(login(profile))
+            rs({ok: true})
+        })
+    )
+    renderLoginForm();
+
+    const lg = getLoginInit()
+    for (const key in lg) {
+        const pHolder = nameToLabel(key)
+        const value = lg[key as keyof typeof lg]
+        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
+    }
+
+    const elem = screen.getByTestId('genform-submit')
+    await act(() => fireEvent.click(elem) as never)
+
+    const U = store.getState().user
+
+    expect(U.auth).toBeTruthy()
+    expect(U.profile).toEqual(profile)
+})
+
+test("Login - Login failed render errors- Integrated test", async () => {
+    const data = getSignupInit();
+    const err_msg = 'Not a valid email address'
+    const err_res = {
+        email: [err_msg]
+    }
+    server.use(
+        rest.post(getApi('login'), (req, res, ctx) => {
+            return res(ctx.json(err_res), ctx.status(400))
+        })
+    )
+    jest.spyOn(user_utils, 'requestLogin').mockImplementation(
+        (data, dispatch) => new Promise((rs, rj) => {
+            rs({ok: false, errors: err_res})
+        })
+    )
+    renderLoginForm();
+
+    const lg = getLoginInit()
+    for (const key in lg) {
+        const pHolder = nameToLabel(key)
+        const value = lg[key as keyof typeof lg]
+        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
+    }
+
+    const elem = screen.getByTestId('genform-submit')
+    await act(() => fireEvent.click(elem) as never)
+
+    const U = store.getState().user
+
+    expect(U.auth).toBeFalsy()
+    screen.getByText(err_msg)
+})
+
+test("Refresh basket after login", async () => {
+    const data = getSignupInit();
+    const profile = {
+        first_name: data.first_name,
+        last_name: data.last_name,
+        email: data.email,
+    }
+    server.use(
+        rest.post(getApi('login'), (req, res, ctx) => {
+            return res(ctx.json(profile))
+        })
+    )
+    server.use(
+        rest.get(getApi('basket'), (req, res, ctx) => {
+        return res(ctx.json(fakeBasket))
+        })
+    )
+    jest.spyOn(user_utils, 'requestLogin').mockImplementation(
+        (data, dispatch) => new Promise((rs, rj) => {
+            dispatch(login(profile))
+            rs({ok: true})
+        })
+    )
+    renderLoginForm();
+
+    const lg = getLoginInit()
+    for (const key in lg) {
+        const pHolder = nameToLabel(key)
+        const value = lg[key as keyof typeof lg]
+        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
+    }
+
+    const elem = screen.getByTestId('genform-submit')
+    await act(() => fireEvent.click(elem) as never)
+
+    const B: IBasket = store.getState().cart
+
+    expect(B).toEqual(fakeBasket)
 })

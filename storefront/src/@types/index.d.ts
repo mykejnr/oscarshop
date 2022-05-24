@@ -34,11 +34,11 @@ interface IBasket {
     lines: [IBasketLine]
 }
 
-
 interface iUI {
     miniCartVisible: boolean,
     miniUserVisible: boolean,
     activeDialog: import("../dialog/dialog").TDialogName,
+    popupMessage: string | undefined
 }
 
 interface IProductType {
@@ -73,10 +73,13 @@ interface IRootState {
     user: IUser,
 }
 
-interface ISignupReturn {
+interface IUserReturnBase {
     first_name: string
     last_name: string
     email: string,
+}
+
+interface ISignupReturn extends IUserReturnBase {
 }
 
 interface ISignupData extends Record<string, string> {
@@ -105,7 +108,14 @@ interface ILoginFormData extends Record<string, string> {
   password: string,
 }
 
+interface ILoginReturn extends IUserReturnBase {}
+
 type TFormDataResponse<TFormData> = {
     ok: boolean,
-    errors?: Record<keyof TFormData, string[]>
+    errors?: Record<keyof TFormData, string[]>,
+    response_data?: Record<string, string>
+}
+
+interface IForgotPasswordData extends Record<string, string> {
+    email: string
 }

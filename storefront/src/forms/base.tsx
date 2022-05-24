@@ -1,4 +1,4 @@
-import { ReactElement, useState } from "react";
+import { useState } from "react";
 import { Action, Dispatch } from 'redux';
 import { SubmitHandler, useForm, UseFormReturn , UnpackNestedValue, Path} from "react-hook-form";
 import { useDispatch } from "react-redux";
@@ -36,7 +36,8 @@ export type TAsyncSubmitErrors<TFormData> = Partial<Record<keyof TFormData, stri
 
 export type TAsyncSubmitResponse<TFormData> = {
   ok: boolean,
-  errors?: TAsyncSubmitErrors<TFormData>
+  errors?: TAsyncSubmitErrors<TFormData>,
+  response_data?: Record<string, string> | void
 }
 
 export type TFormFieldProps = {
@@ -50,7 +51,7 @@ export type TFormFields<TFormData> = Record<TFieldName<TFormData>, TFormFieldPro
 export type TFormProps<TFormData> = {
   asyncSubmit: TAsyncSubmit<TFormData>,
   fields: TFormFields<TFormData>,
-  afterSubmitOk?: () => void,
+  afterSubmitOk?: (responseData: Record<string, string> | void) => void,
   getFields?: TGetFields<TFormData>
 }
 
@@ -79,7 +80,7 @@ export const Input = <TFormData, >(props: TInputProps<TFormData>) => {
   const ph = placeholder ? placeholder : nameToLabel(props.name)
 
   return (
-    <div className="w-72 border-box">
+    <div className="w-full box-border">
       <input
         className="block h-10 w-full px-4 rounded"
         type={type} {...register(name, {required})} placeholder={ph}
@@ -104,12 +105,6 @@ const ButtonSpinner = () => (
   </>
 )
 
-class FormArgsError extends Error {
-  constructor(message: string) {
-    super(message)
-  }
-}
-
 
 /**
  * A Generic Components that renders an html form
@@ -130,9 +125,9 @@ class FormArgsError extends Error {
  * return value. You can use this function to alert the user that their form was
  * submitted successfully or do other after sumit operations.
  * @param props.getFields an optional callback that if provided will be called
- * to generate a list of <Input> components which will be concatenated with
- * the Inputs created from the information provided in @param props.fields
- * this callback will be called with the following object
+ * to generate a list of <Input> components or other JSX.Elelemts which will
+ * be concatenated with the Inputs created from the information provided
+ * in @param props.fields this callback will be called with the following object
  * {
  *  getInputProps: A function(field_name) that generate the properties requried by <Inputs>
  *  serverErrors: {'field_name': ['list of errors from the server']}
@@ -155,7 +150,7 @@ const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => 
   const onSubmit: SubmitHandler<TFormData> = async (data) => {
     const res = await asyncSubmit(data, dispatch)
     if (res.ok) {
-      afterSubmitOk && afterSubmitOk()
+      afterSubmitOk && afterSubmitOk(res.response_data)
     } else if (res.errors) {
       setServerErrors(res.errors)
     }
@@ -188,7 +183,7 @@ const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => 
 
   return (
     <form
-      className="bg-gray-200 p-5 border-box rounded-b"
+      className="bg-gray-200 p-5 box-border rounded-b w-80 block"
       onSubmit={handleSubmit(onSubmit)}
       data-testid="signup-form"
     >
@@ -197,7 +192,7 @@ const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => 
       <div className="mt-6">
         <button
           disabled={isSubmitting}
-          data-testid='signup-submit' type="submit"
+          data-testid='genform-submit' type="submit"
           className='button w-36 ml-auto h-10 relative'
         >
           {isSubmitting ? <ButtonSpinner /> : 'Submit'}

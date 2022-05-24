@@ -4,6 +4,7 @@ import Header from "./components/header";
 import Footer from "./components/footer";
 import MiniCart from "./components/mini-cart";
 import Dialog from "./dialog/dialog";
+import { PopupMessage } from "./dialog/popup";
 
 
 const Home = lazy(() => import('./routes/Home'));
@@ -18,6 +19,8 @@ const Layout = () => (
     <MiniCart />
     <Dialog name="signup" />
     <Dialog name="login" />
+    <Dialog name="forgot_password" />
+    <PopupMessage />
   </div>
 )
 

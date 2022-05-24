@@ -1,10 +1,11 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { showDialog, toggleMiniCart, toggleMiniUser } from '../actions';
+import { showDialog, showPopup, toggleMiniCart, toggleMiniUser } from '../actions';
 
 const initialState: iUI = {
   miniCartVisible: false,
   miniUserVisible: false,
   activeDialog: 'nodialog',
+  popupMessage: undefined,
 }
 
 const uiReducer = createReducer(initialState, (builder) => {
@@ -18,6 +19,9 @@ const uiReducer = createReducer(initialState, (builder) => {
   })
   .addCase(showDialog, (state: iUI, action) => {
     state.activeDialog = action.payload
+  })
+  .addCase(showPopup, (state, {payload}) => {
+    state.popupMessage = payload
   })
   .addDefaultCase(() => initialState)
 })

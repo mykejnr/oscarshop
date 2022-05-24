@@ -53,9 +53,10 @@ def signin(request):
     )
 
     if user is None:
-        data = {'message': 'Login Failed'}
+        data = {'message': 'Login Failed. Incorrect email or passwrod.'}
         return Response(
-            data, status=status.HTTP_401_UNAUTHORIZED)
+            data, status=status.HTTP_401_UNAUTHORIZED
+        )
 
     _login_user(request, user)
     return Response(UserSerializer(user).data)
