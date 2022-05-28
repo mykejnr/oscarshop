@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import patch, ANY
 
 from django.contrib.auth import get_user_model, get_user, authenticate
 from django.urls import reverse
@@ -148,7 +148,7 @@ class ResetPasswordTestCase(APITestCase):
         token = '123488293003972003949920'
         user = User.objects.create_user(email=data['email'], password=data['password'])
 
-        with patch("userapi.views.send_reset_email") as email_mock, \
+        with patch("userapi.views.send_reset_email.delay") as email_mock, \
             patch("userapi.views.urlsafe_base64_encode") as encode_mock, \
             patch.object(views.default_token_generator, 'make_token') as token_mock:
 
@@ -160,7 +160,8 @@ class ResetPasswordTestCase(APITestCase):
         encode_mock.assert_called_with(force_bytes(data['email']))
         token_mock.assert_called_with(user)
 
-        email_mock.assert_called_with(uid, token)
+        # email_mock.assert_called_with(response.wsgi_request, uid, token)
+        email_mock.assert_called_with(ANY, uid, token)
 
     @patch("userapi.views.send_reset_email")
     def test_return_404_email_dosent_exit(self, mock_meth):

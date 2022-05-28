@@ -79,7 +79,9 @@ def reset_password(request):
 
     uid = urlsafe_base64_encode(force_bytes(user.email))
     token = default_token_generator.make_token(user)
-    send_reset_email(uid, token)
+
+    base_url = request.build_absolute_uri('/reset-password')
+    send_reset_email.delay(user.email, uid, token, base_url) # celery task
 
     msg = f"A message with a link to reset your password has been sent to {em}"
     return Response({'message': msg})
@@ -87,29 +89,29 @@ def reset_password(request):
 
 @api_view(['POST'])
 def confirm_password_reset(request):
-    c_ser = ConfirmReseSerializer(data=request.data)
+    c_ser = ConfirmReseSerializer(data=request.data, request=request)
     if not c_ser.is_valid():
         return Response(c_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     vd = c_ser.validated_data
-    email = urlsafe_base64_decode(vd['uuid']).decode()
+    # email = urlsafe_base64_decode(vd['uuid']).decode()
 
-    try:
-        user: User = User.objects.get(email=email)
-    except User.DoesNotExist:
-        return Response(
-            {'message': 'Incorrect uuid'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    # try:
+    #     user: User = User.objects.get(email=email)
+    # except User.DoesNotExist:
+    #     return Response(
+    #         {'message': 'Incorrect uuid'},
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
 
-    if not default_token_generator.check_token(user, vd['token']):
-        return Response(
-            {'message': 'Token incorrect or has expired'},
-            status=status.HTTP_400_BAD_REQUEST
-        )
+    # if not default_token_generator.check_token(user, vd['token']):
+    #     return Response(
+    #         {'message': 'Token incorrect or has expired'},
+    #         status=status.HTTP_400_BAD_REQUEST
+    #     )
 
-    user.set_password(vd['password'])
-    user.save()
+    c_ser.user.set_password(vd['password'])
+    c_ser.user.save()
 
     return Response()
 

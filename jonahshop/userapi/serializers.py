@@ -1,3 +1,6 @@
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes
 from django.contrib.auth import get_user_model
 
 from rest_framework import serializers
@@ -30,9 +33,31 @@ class ResetPasswordSerializer(serializers.Serializer):
 
 
 class ConfirmReseSerializer(serializers.Serializer):
+    def __init__(self, instance=None, data=..., **kwargs):
+        self.request = kwargs.pop('request')
+        self.user = None
+        super().__init__(instance, data, **kwargs)
+
     uuid = serializers.CharField(required=True, max_length=100)
     token = serializers.CharField(required=True, max_length=100)
     password = serializers.CharField(required=True, max_length=100)
+
+    def validate_uuid(self, value):
+
+        try:
+            email = urlsafe_base64_decode(value).decode()
+            self.user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Incorrect uuid")
+        except:
+            raise serializers.ValidationError("Bad uuid")
+
+        return value
+        
+    def validate_token(self, value):
+        if not default_token_generator.check_token(self.user, value):
+            raise serializers.ValidationError("Token incorrect or has expired")
+        return value
 
 
 class SignupSerializer(serializers.Serializer):

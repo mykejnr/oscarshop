@@ -42,6 +42,7 @@ EMAIL_FILE_PATH = BASE_DIR / 'fakeinbox'
 
 INSTALLED_APPS = [
     # our own apps
+    'core',
     'userapi',
     'shopapi',
 
@@ -251,3 +252,5 @@ if DEBUG:
         "http://127.0.0.1:3000",
     )
     CORS_ALLOW_CREDENTIALS = True
+
+# CELERY_IMPORTS = ['userapi.tasks']
