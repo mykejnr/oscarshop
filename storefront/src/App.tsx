@@ -5,6 +5,7 @@ import Footer from "./components/footer";
 import MiniCart from "./components/mini-cart";
 import Dialog from "./dialog/dialog";
 import { PopupMessage } from "./dialog/popup";
+import ResetPassword from "./routes/ResetPassword";
 
 
 const Home = lazy(() => import('./routes/Home'));
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="catalogue" element={<Catalog />} />
+              <Route path="reset-password/:uuid/:token" element={<ResetPassword/>} />
             </Route>
           </Routes>
         </Suspense>

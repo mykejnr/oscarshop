@@ -10,7 +10,7 @@ import { getApi } from '../api';
 import { fakeBasket, fakeUser } from './fakes';
 import { act } from 'react-dom/test-utils';
 import { MiniButtons } from '../components/header';
-import { LoginForm, SignupForm } from '../forms';
+import { ForgotPasswordForm, LoginForm, SignupForm } from '../forms';
 import { requestSignup, requestLogin } from '../utils/user';
 import { nameToLabel } from '../utils';
 import * as user_utils from '../utils/user'
@@ -416,4 +416,128 @@ test("Refresh basket after login", async () => {
     const B: IBasket = store.getState().cart
 
     expect(B).toEqual(fakeBasket)
+})
+
+test("requestPasswordReset return success message", async () => {
+    const msg = {
+        message: 'Message has been sent to your mail'
+    }
+
+    server.use(
+        rest.post(getApi('resetPassword'), (req, res, ctx) => {
+            return res(ctx.json(msg))
+        })
+    )
+
+    const loginData = {email: 'myke@mail.com'}
+    const res = await user_utils.requestPasswordReset(loginData, store.dispatch)
+
+    expect(res.ok).toBeTruthy()
+    expect(res.response_data?.message).toEqual(msg.message)
+
+})
+
+test("requestPasswordReset failed server validation", async () => {
+    const err = {
+        email: ['Email incorrect']
+    }
+
+    server.use(
+        rest.post(getApi('resetPassword'), (req, res, ctx) => {
+            return res(ctx.json(err), ctx.status(400))
+        })
+    )
+
+    const loginData = {email: 'myke@mail.com'}
+    const res = await user_utils.requestPasswordReset(loginData, store.dispatch)
+
+    expect(res.ok).toBeFalsy()
+    expect(res.errors).toEqual(err)
+})
+
+test("requestPasswordReset 404 email not found", async () => {
+    const msg = {
+        message: 'No user with this email was found'
+    }
+    const err = {
+        email: [msg.message]
+    }
+
+    server.use(
+        rest.post(getApi('resetPassword'), (req, res, ctx) => {
+            return res(ctx.json(msg), ctx.status(404))
+        })
+    )
+
+    const reqData = {email: 'myke@mail.com'}
+    const res = await user_utils.requestPasswordReset(reqData, store.dispatch)
+
+    expect(res.ok).toBeFalsy()
+    expect(res.errors).toEqual(err)
+})
+
+test("Request password reset success - Integrated test", async () => {
+    const data = {email: 'myke@mail.com'};
+    const msg = {
+        message: 'Message has been sent to your mail'
+    }
+    server.use(
+        rest.post(getApi('resetPassword'), (req, res, ctx) => {
+            return res(ctx.json(msg))
+        })
+    )
+    jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
+        (data, dispatch) => new Promise((rs, rj) => {
+            rs({ok: true, response_data: msg})
+        })
+    )
+    render(
+        <Provider store={store}>
+            <ForgotPasswordForm />
+        </Provider>
+    )
+
+    const value = data.email
+    fireEvent.change(screen.getByPlaceholderText('Email'),{target: {value}})
+
+    const elem = screen.getByTestId('genform-submit')
+    await act(() => fireEvent.click(elem) as never)
+
+    const U = store.getState().ui
+
+
+    expect(U.popupMessage).toEqual(msg.message)
+})
+
+test("Request password reset email not found- Integrated test", async () => {
+    const data = {email: 'myke@mail.com'};
+    const msg = {
+        message: 'No user with the provided email'
+    }
+    server.use(
+        rest.post(getApi('resetPassword'), (req, res, ctx) => {
+            return res(ctx.json(msg), ctx.status(404))
+        })
+    )
+    jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
+        (data, dispatch) => new Promise((rs, rj) => {
+            rs({ok: false, errors: {email: [msg.message]}})
+        })
+    )
+    render(
+        <Provider store={store}>
+            <ForgotPasswordForm />
+        </Provider>
+    )
+
+    const value = data.email
+    fireEvent.change(screen.getByPlaceholderText('Email'),{target: {value}})
+
+    const elem = screen.getByTestId('genform-submit')
+    await act(() => fireEvent.click(elem) as never)
+
+    const U = store.getState().ui
+    const errElem = screen.getByTestId('field-error')
+
+    expect(errElem.textContent).toEqual(msg.message)
 })

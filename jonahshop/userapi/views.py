@@ -81,7 +81,7 @@ def reset_password(request):
     token = default_token_generator.make_token(user)
     send_reset_email(uid, token)
 
-    msg = "A message with a link to reset your password has been sent to {em}"
+    msg = f"A message with a link to reset your password has been sent to {em}"
     return Response({'message': msg})
 
 

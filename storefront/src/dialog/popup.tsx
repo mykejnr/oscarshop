@@ -14,7 +14,7 @@ export const PopupMessage = () => {
       {state => (
         <div className="fixed inset-0 bg-black bg-opacity-10 flex justify-center items-center">
           <div className={`${styles} dialog-${state}}`}>
-            <div className="pb-8 text-black">{uiState.popupMessage}</div>
+            <div data-testid="popup-msg" className="pb-8 text-black">{uiState.popupMessage}</div>
             <button type="button" className="button block ml-auto w-20" onClick={() => dispatch(showPopup())}>
               Ok
             </button>

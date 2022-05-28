@@ -119,3 +119,9 @@ type TFormDataResponse<TFormData> = {
 interface IForgotPasswordData extends Record<string, string> {
     email: string
 }
+
+interface IResetPasswordData extends Record<string, string> {
+    uuid: string,
+    token: string,
+    password: string,
+}

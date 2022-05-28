@@ -51,3 +51,6 @@ tmp_email/
 venv
 # folder to contain emails for testing django emails
 fakeinbox
+
+# supervisord <program> logs
+log

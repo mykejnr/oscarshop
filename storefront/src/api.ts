@@ -20,7 +20,10 @@ const API = {
     basketAdd: '/api/basket/add_product/',
     user: '/api/user/',
     signup: '/api/user/signup/',
-    login: '/api/user/login/'
+    login: '/api/user/login/',
+    resetPassword: '/api/user/reset_password/',
+    confirmReset: '/api/user/confirm_reset/',
+    changePassword: '/api/user/change_password/'
 }
 
 

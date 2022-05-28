@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Action, Dispatch } from 'redux';
-import { SubmitHandler, useForm, UseFormReturn , UnpackNestedValue, Path} from "react-hook-form";
+import { SubmitHandler, useForm, UseFormReturn , UnpackNestedValue, Path, DeepPartial} from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { nameToLabel } from "../utils";
 import { Spinner } from "../utils/components";
@@ -52,7 +52,8 @@ export type TFormProps<TFormData> = {
   asyncSubmit: TAsyncSubmit<TFormData>,
   fields: TFormFields<TFormData>,
   afterSubmitOk?: (responseData: Record<string, string> | void) => void,
-  getFields?: TGetFields<TFormData>
+  getFields?: TGetFields<TFormData>,
+  defaultValues?: UnpackNestedValue<DeepPartial<TFormData>>
 }
 
 
@@ -88,7 +89,7 @@ export const Input = <TFormData, >(props: TInputProps<TFormData>) => {
       <div className="text-xs text-red-500 pb-2 min-h-[20px] leading-[1]">
         {fieldErrors && 
           fieldErrors.map((err_msg, i) => (
-            <div className="bg-red-100" key={i}>{err_msg}</div>
+            <div data-testid="field-error" className="bg-red-100" key={i}>{err_msg}</div>
           ))
         }
       </div>
@@ -137,9 +138,9 @@ const ButtonSpinner = () => (
  * @returns JSX.ELemenent
  */
 const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => {
-  let { asyncSubmit, fields, afterSubmitOk, getFields } = props
+  let { asyncSubmit, fields, afterSubmitOk, getFields, defaultValues } = props
   const [serverErrors, setServerErrors] = useState<TAsyncSubmitErrors<TFormData>>({})
-  const useFormReturn = useForm<TFormData>()
+  const useFormReturn = useForm<TFormData>({defaultValues})
   const dispatch = useDispatch<Dispatch<Action>>()
   const {
       handleSubmit,

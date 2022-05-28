@@ -37,8 +37,9 @@ export const LoginForm = () => {
 
   const msg = "Login Successfull. You are now logged in."
 
+  // key=3.... number of fields + 1
   const getFields = () => ([
-    <ForgotPassowrdButton />
+    <ForgotPassowrdButton key={2}/>
   ])
 
   return (
@@ -87,8 +88,9 @@ export const ForgotPasswordForm = () => {
     dispatch(showPopup(responseData.message))
   }
 
+  // key=2.... number of fields + 1
   const getFields = () => ([
-    <div className='w-full box-border text-accent-700'>
+    <div key={2} className='w-full box-border text-accent-700'>
       Enter the email address associated with your account.
     </div>
   ])

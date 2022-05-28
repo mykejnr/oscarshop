@@ -63,10 +63,27 @@ export const requestLogin = async (data: ILoginFormData, dispatch: LTDispatch): 
 } 
 
 export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IForgotPasswordData>> =>{
-    return {
-        ok: true,
-        response_data: {
-            message: 'A message with a link to reset you password has been sent to "mykejnr4@gmail.com"'
-        }
+    const url = getApi('resetPassword')
+    const ignore_errors = [400, 404]
+    const response = await post({
+        url,
+        ignore_errors,
+        dispatch,
+        options: { body: JSON.stringify(data) }
+    })
+    const json = await response.json()
+    if (response.ok) {
+        return {ok: true, response_data: json}
     }
+    if (response.status === 400) {
+        return {ok: false, errors: json}
+    }
+    if (response.status === 404) {
+        return {ok: false, errors: {email: [json.message]}}
+    }
+    return {ok: false}
+}
+
+export const resetPassword = async (data: IResetPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IResetPasswordData>> => {
+    return {ok: true}
 }
