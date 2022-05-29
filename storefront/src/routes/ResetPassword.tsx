@@ -1,27 +1,31 @@
-import { useParams } from "react-router-dom"
+import { useDispatch } from "react-redux"
+import { useParams, useNavigate} from "react-router-dom"
+import { showPopup } from "../actions"
 import Form, {TFormFields} from "../forms/base"
-import { resetPassword } from "../utils/user"
+import { confirmPasswordReset } from "../utils/user"
 
 
 const ResetPassword = () => {
-  // const dispatch = useDispatch()
+  const dispatch = useDispatch()
   const {uuid, token} = useParams()
+  const navigate = useNavigate()
+  const disabled = true
+
   const formFields: TFormFields<IResetPasswordData> = {
-    uuid: {type: 'text', required: true},
-    token: {type: 'text', required: true},
+    uuid: {type: 'text', required: true, disabled},
+    token: {type: 'text', required: true, disabled},
     password: {type: 'text', required: true, placeholder: "Enter new password"}
   }
-  const defaultValues = {
-    uuid,
-    token,
+  const defaultValues = {uuid, token}
+
+  const afterSubmitOk = () => {
+    const msg = "Password reset successful. You can now login."
+    navigate('/')
+    dispatch(showPopup(msg))
   }
 
-  // key=3.... number of fields + 1
-  const getFields = () => ([
-    // <ForgotPassowrdButton key={2}/>
-  ])
-
   return (
+    <>
     <div className="flex justify-center py-20">
       <div>
         <div className="bg-accent-400 text-center p-5 text-white font-semibold">
@@ -29,13 +33,13 @@ const ResetPassword = () => {
         </div>
         <Form<IResetPasswordData>
           fields={formFields}
-          asyncSubmit={resetPassword}
-          // afterSubmitOk={afterSubmitOk(msg, dispatch)}
-          getFields={getFields}
+          asyncSubmit={confirmPasswordReset}
+          afterSubmitOk={afterSubmitOk}
           defaultValues={defaultValues}
         />
       </div>
     </div>
+    </>
   )
 }
 

@@ -42,24 +42,35 @@ test("Make request with fetch api expected arguments", () => {
         })
     )
 
-    http_utils.makeRequest(method)({url, options, dispatch: dispatchMock})
+    http_utils.makeRequest(method)({
+        url, options,
+        dispatch: dispatchMock,
+        data: null
+    })
     expect(fetchSpy).toHaveBeenCalledWith(url, {...defaultOpts, ...options})
 })
 
 test('Returns return value of fetch', async () => {
     const returnVal = 'xxeee33oosidkkfkksuurj'
     const url = '/fetch/url'
+    const fakeResponse = {
+        json: () => Promise.resolve(returnVal),
+       status: 200,
+       ok: true,
+    }
 
     const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
     fetchSpy.mockImplementation(//() => Promise.resolve(returnVal))
         () => Promise.resolve({
-            json: () => Promise.resolve(returnVal),
-            status: 200,
-            ok: true,
+            ...fakeResponse, clone: () => fakeResponse
         })
     )
 
-    const expectVal = await http_utils.makeRequest('GET')({url, dispatch: dispatchMock})
+    const expectVal = await http_utils.makeRequest('GET')({
+        url,
+        dispatch: dispatchMock,
+        data: null
+    })
     
     expect(await expectVal.json()).toEqual(returnVal)
 })
@@ -75,7 +86,11 @@ test("Catch and dispatch fetch errors as messages", () => {
     })
 
 
-    const expectVal = http_utils.makeRequest('GET')({url, dispatch: dispatchMock})
+    const expectVal = http_utils.makeRequest('GET')({
+        url,
+        dispatch: dispatchMock,
+        data: null
+    })
 
     expect(dispatchMock).toHaveBeenCalledWith(newMessage(err.message))
 })
@@ -83,18 +98,22 @@ test("Catch and dispatch fetch errors as messages", () => {
 test("Handle unhandled http error codes", async () => {
     const message = "Request failed. Please try again later."
     const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
+    const fakeResponse = {
+        json: () => Promise.resolve(),
+        status: 407,
+        ok: false
+    }
     fetchSpy.mockImplementation(
         () => Promise.resolve({
-            json: () => Promise.resolve(),
-            status: 407,
-            ok: false
+            ...fakeResponse, clone: () => fakeResponse
         })
     )
 
     await http_utils.get({
         url: '/url/url/',
         dispatch: dispatchMock,
-        ignore_errors: [403, 401, 500]
+        ignore_errors: [403, 401, 500],
+        data: null
     })
 
     expect(dispatchMock).toHaveBeenCalledWith(newMessage(message))

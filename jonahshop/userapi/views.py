@@ -93,24 +93,7 @@ def confirm_password_reset(request):
     if not c_ser.is_valid():
         return Response(c_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    vd = c_ser.validated_data
-    # email = urlsafe_base64_decode(vd['uuid']).decode()
-
-    # try:
-    #     user: User = User.objects.get(email=email)
-    # except User.DoesNotExist:
-    #     return Response(
-    #         {'message': 'Incorrect uuid'},
-    #         status=status.HTTP_400_BAD_REQUEST
-    #     )
-
-    # if not default_token_generator.check_token(user, vd['token']):
-    #     return Response(
-    #         {'message': 'Token incorrect or has expired'},
-    #         status=status.HTTP_400_BAD_REQUEST
-    #     )
-
-    c_ser.user.set_password(vd['password'])
+    c_ser.user.set_password(c_ser.validated_data['password'])
     c_ser.user.save()
 
     return Response()

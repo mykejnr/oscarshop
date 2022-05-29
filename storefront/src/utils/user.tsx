@@ -12,14 +12,7 @@ export const requestSignup = async (data: ISignupData, dispatch: LTDispatch): Pr
     const url = getApi('signup')
     const ignore_errors = [400]
 
-    const response = await post({
-        url,
-        ignore_errors,
-        dispatch,
-        options: {
-            body: JSON.stringify(data)
-        }
-    })
+    const response = await post({url, ignore_errors, dispatch, data,})
     const json = await response.json()
 
     if (response.ok) {
@@ -42,13 +35,10 @@ export const requestSignup = async (data: ISignupData, dispatch: LTDispatch): Pr
 export const requestLogin = async (data: ILoginFormData, dispatch: LTDispatch): Promise<TFormDataResponse<ILoginFormData>> =>{
     const url = getApi('login')
     const ignore_errors = [400, 401]
-    const response = await post({
-        url,
-        ignore_errors,
-        dispatch,
-        options: { body: JSON.stringify(data) }
-    })
+
+    const response = await post({url, ignore_errors, dispatch, data})
     const json = await response.json()
+
     if (response.ok) {
         dispatch(login(json))
         return {ok: true}
@@ -65,12 +55,8 @@ export const requestLogin = async (data: ILoginFormData, dispatch: LTDispatch): 
 export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IForgotPasswordData>> =>{
     const url = getApi('resetPassword')
     const ignore_errors = [400, 404]
-    const response = await post({
-        url,
-        ignore_errors,
-        dispatch,
-        options: { body: JSON.stringify(data) }
-    })
+
+    const response = await post({url, ignore_errors, dispatch, data})
     const json = await response.json()
     if (response.ok) {
         return {ok: true, response_data: json}
@@ -84,6 +70,16 @@ export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: 
     return {ok: false}
 }
 
-export const resetPassword = async (data: IResetPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IResetPasswordData>> => {
-    return {ok: true}
+export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IResetPasswordData>> => {
+    const url = getApi('confirmReset')
+    const ignore_errors = [ 400 ]
+
+    const response = await post({url, ignore_errors, dispatch, data})
+    const res = {ok: response.ok, errors: undefined}
+
+    if (response.status === 400) {
+        res.errors = await response.json()
+    }
+
+    return res
 }

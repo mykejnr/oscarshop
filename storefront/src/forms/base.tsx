@@ -18,6 +18,7 @@ export type TInputProps<TFormData> = {
     placeholder?: string,
     fieldErrors?: string[],
     required?: boolean,
+    disabled?: boolean,
 } & UseFormReturn<TFormData>
 
 export type TGetInputProps<TFormData> = (field_name: TFieldName<TFormData>) => TInputProps<TFormData>
@@ -44,6 +45,7 @@ export type TFormFieldProps = {
   type: TInputType,
   placeholder?: string,
   required?: boolean,
+  disabled?: boolean,
 }
 
 export type TFormFields<TFormData> = Record<TFieldName<TFormData>, TFormFieldProps>
@@ -73,18 +75,20 @@ export const Input = <TFormData, >(props: TInputProps<TFormData>) => {
     register,
     name,
     type,
+    disabled,
     placeholder,
     fieldErrors,
     required,
   } = props;
 
   const ph = placeholder ? placeholder : nameToLabel(props.name)
+  const disAstyles = disabled ? 'bg-gray-100' : ''
 
   return (
     <div className="w-full box-border">
       <input
-        className="block h-10 w-full px-4 rounded"
-        type={type} {...register(name, {required})} placeholder={ph}
+        className={`block h-10 w-full px-4 rounded ${disAstyles}`}
+        type={type} disabled={disabled} {...register(name, {required})} placeholder={ph}
       />
       <div className="text-xs text-red-500 pb-2 min-h-[20px] leading-[1]">
         {fieldErrors && 
@@ -167,6 +171,7 @@ const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => 
       type: fields[f].type,
       required: fields[f].required,
       placeholder: fields[f].placeholder,
+      disabled: fields[f].disabled,
       ...useFormReturn
     }
   }

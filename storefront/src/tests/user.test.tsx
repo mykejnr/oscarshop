@@ -11,10 +11,10 @@ import { fakeBasket, fakeUser } from './fakes';
 import { act } from 'react-dom/test-utils';
 import { MiniButtons } from '../components/header';
 import { ForgotPasswordForm, LoginForm, SignupForm } from '../forms';
-import { requestSignup, requestLogin } from '../utils/user';
+import { requestSignup } from '../utils/user';
 import { nameToLabel } from '../utils';
 import * as user_utils from '../utils/user'
-import { login, signup } from '../reducers/user_reducer';
+import { signup } from '../reducers/user_reducer';
 
 
 const server = setupServer(
@@ -50,14 +50,6 @@ const renderSignupForm = () => {
     )
 }
 
-const renderLoginForm = () => {
-    render(
-        <Provider store={store}>
-            <LoginForm />
-        </Provider>
-    )
-}
-
 const getSignupInit = () => ({
     first_name: "James",
     last_name: "Yeboah",
@@ -66,478 +58,316 @@ const getSignupInit = () => ({
     confirm_password: "1233addf!",
 })
 
-const getLoginInit = () => ({
-    email: 'mykejnr4@ma.com',
-    password: 'PasW$ed'
-})
+
+describe("Fetch user data from api", () => {
+
+    describe("getUser action", () => {
+
+        test("Should update store with user on success", async () => {
+            await store.dispatch(getUser())
+            const user = store.getState().user
+            expect(user.auth).toBeTruthy()
+            expect(user.profile).toEqual(fakeUser)
+        });
+
+        test("Should not update store with user on failure", async () => {
+            server.use(
+                rest.get(getApi('user'), (req, res, ctx) => {
+                return res(ctx.status(403))
+                })
+            )
+
+            await store.dispatch(getUser())
+            const user = store.getState().user
+            expect(user.auth).toBeFalsy()
+        });
+    });
+
+    describe("Fetch user integration tests", () => {
+
+        test("Should fetch and render user info on mount", async () => {
+            const fakeResponse = {
+                json: () => Promise.resolve(fakeUser),
+                status: 200,
+                ok: true,
+            }
+            const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
+            fetchSpy.mockImplementation(
+                () => Promise.resolve({...fakeResponse, clone: () => fakeResponse})
+            )
+
+            await act(() => Promise.resolve(renderHeader() as never))
+            const U = store.getState().user
+            
+            // user state has been updated
+            expect(U.auth).toBeTruthy()
+
+            // show Mini profile info popup
+            const btnElem = screen.getByTestId('show-user')
+            fireEvent.click(btnElem)
+
+            const username = screen.getByTestId('username')
+            expect(username.textContent).toBe(
+                `${fakeUser.first_name} ${fakeUser.last_name}`.trim()
+            )
+        });
+
+        test("Should render no user if request returns 403t", async () => {
+            const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
+            fetchSpy.mockImplementation(
+                () => Promise.resolve({
+                    json: () => Promise.resolve(),
+                    status: 403,
+                })
+            )
+
+            await act(() => Promise.resolve(renderHeader() as never))
+            const U = store.getState().user
+            
+            // user state has been updated
+            expect(U.auth).toBeFalsy()
+
+            // show Mini profile info popup
+            const btnElem = screen.getByTestId('show-user')
+            fireEvent.click(btnElem)
+
+            const username = screen.getByTestId('username')
+            expect(username.textContent).toBe("Oops!")
+        });
+    });
+});
 
 
-test("getUser action 400", async () => {
-    await store.dispatch(getUser())
-    const user = store.getState().user
-    expect(user.auth).toBeTruthy()
-    expect(user.profile).toEqual(fakeUser)
-})
-
-
-test("getUser action 403", async () => {
-    server.use(
-        rest.get(getApi('user'), (req, res, ctx) => {
-        return res(ctx.status(403))
-        })
-    )
-
-    await store.dispatch(getUser())
-    const user = store.getState().user
-    expect(user.auth).toBeFalsy()
-
-})
-
-
-test("Fetch and render user info on mount - Integratoin test", async () => {
-    const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
-    fetchSpy.mockImplementation(
-        () => Promise.resolve({
-            json: () => Promise.resolve(fakeUser),
-            status: 200,
-            ok: true,
-        })
-    )
-
-    await act(() => Promise.resolve(renderHeader() as never))
-    const U = store.getState().user
-    
-    // user state has been updated
-    expect(U.auth).toBeTruthy()
-
-    // show Mini profile info popup
-    const btnElem = screen.getByTestId('show-user')
-    fireEvent.click(btnElem)
-
-    const username = screen.getByTestId('username')
-    expect(username.textContent).toBe(
-        `${fakeUser.first_name} ${fakeUser.last_name}`.trim()
-    )
-})
-
-test("Render no user if request returns 403 - integration test", async () => {
-    const fetchSpy = jest.spyOn(global, "fetch") as jest.Mock
-    fetchSpy.mockImplementation(
-        () => Promise.resolve({
-            json: () => Promise.resolve(),
-            status: 403,
-        })
-    )
-
-    await act(() => Promise.resolve(renderHeader() as never))
-    const U = store.getState().user
-    
-    // user state has been updated
-    expect(U.auth).toBeFalsy()
-
-    // show Mini profile info popup
-    const btnElem = screen.getByTestId('show-user')
-    fireEvent.click(btnElem)
-
-    const username = screen.getByTestId('username')
-    expect(username.textContent).toBe("Oops!")
-})
-
-
-test("Signup - update store with user info after signup", async () => {
-    const data = getSignupInit()
-    const profile = {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-    }
-    server.use(
-        rest.post(getApi('signup'), (req, res, ctx) => {
-            return res(ctx.json(profile))
-        })
-    )
-
-    const res = await requestSignup(data, store.dispatch)
-    const U = store.getState().user
-
-    expect(U.auth).toBeTruthy()
-    expect(U.profile).toEqual(profile)
-    expect(res.ok).toBeTruthy()
-})
-
-
-test("Signup - return server errors for bad request", async () => {
-    const data = getSignupInit()
-    const errs: ISignupResponseErrors = {
-        email: ['The email address is incorrect.']
-    }
-    server.use(
-        rest.post(getApi('signup'), (req, res, ctx) => {
-            return res(ctx.json(errs), ctx.status(400))
-        })
-    )
-
-    const res = await requestSignup(data, store.dispatch)
-
-    expect(res.ok).toBeFalsy()
-    expect(res.errors).toEqual(errs)
-})
-
-test("Signup - update store with user - Integrated test", async () => {
-    const data = getSignupInit();
-    const profile = {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-    }
-    server.use(
-        rest.post(getApi('signup'), (req, res, ctx) => {
-            return res(ctx.json(profile))
-        })
-    )
-    jest.spyOn(user_utils, 'requestSignup').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            dispatch(signup(profile))
-            rs({ok: true})
-        })
-    )
-    renderSignupForm();
-
-    for (const key in data) {
-        const pHolder = nameToLabel(key)
-        const value = data[key as keyof typeof data]
-        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
-    }
-
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
-
-    const U = store.getState().user
-
-    expect(U.auth).toBeTruthy()
-    expect(U.profile).toEqual(profile)
-})
-
-test('Signup - Render errors on signup fail', async () => {
-    const data = getSignupInit();
-    const email_err = 'Email not unique'
-    const first_err = "Firstname required"
-
-    jest.spyOn(user_utils, 'requestSignup').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            rs({
-                ok: false,
-                errors: {
-                    'email': [email_err],
-                    'first_name': [first_err]
-                }
+describe("User signup", () => {
+    test("Should update store with user info after signup", async () => {
+        const data = getSignupInit()
+        const profile = {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+        }
+        server.use(
+            rest.post(getApi('signup'), (req, res, ctx) => {
+                return res(ctx.json(profile))
             })
-        })
-    )
+        )
 
-    renderSignupForm()
+        const res = await requestSignup(data, store.dispatch)
+        const U = store.getState().user
 
-    for (const key in data) {
-        const pHolder = nameToLabel(key)
-        const value = data[key as keyof typeof data]
-        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
-    }
+        expect(U.auth).toBeTruthy()
+        expect(U.profile).toEqual(profile)
+        expect(res.ok).toBeTruthy()
+    });
 
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
+    test("Should return server errors for bad request", async () => {
+        const data = getSignupInit()
+        const errs: ISignupResponseErrors = {
+            email: ['The email address is incorrect.']
+        }
+        server.use(
+            rest.post(getApi('signup'), (req, res, ctx) => {
+                return res(ctx.json(errs), ctx.status(400))
+            })
+        )
 
-    screen.getByText(email_err)
+        const res = await requestSignup(data, store.dispatch)
+
+        expect(res.ok).toBeFalsy()
+        expect(res.errors).toEqual(errs)
+    });
+
+    test("Should update store with user - Integrated test", async () => {
+        const data = getSignupInit();
+        const profile = {
+            first_name: data.first_name,
+            last_name: data.last_name,
+            email: data.email,
+        }
+        server.use(
+            rest.post(getApi('signup'), (req, res, ctx) => {
+                return res(ctx.json(profile))
+            })
+        )
+        jest.spyOn(user_utils, 'requestSignup').mockImplementation(
+            (data, dispatch) => new Promise((rs, rj) => {
+                dispatch(signup(profile))
+                rs({ok: true})
+            })
+        )
+        renderSignupForm();
+
+        for (const key in data) {
+            const pHolder = nameToLabel(key)
+            const value = data[key as keyof typeof data]
+            fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
+        }
+
+        const elem = screen.getByTestId('genform-submit')
+        await act(() => fireEvent.click(elem) as never)
+
+        const U = store.getState().user
+
+        expect(U.auth).toBeTruthy()
+        expect(U.profile).toEqual(profile)
+    });
+
+    test('Should render errors on signup fail', async () => {
+        const data = getSignupInit();
+        const email_err = 'Email not unique'
+        const first_err = "Firstname required"
+
+        jest.spyOn(user_utils, 'requestSignup').mockImplementation(
+            (data, dispatch) => new Promise((rs, rj) => {
+                rs({
+                    ok: false,
+                    errors: {
+                        'email': [email_err],
+                        'first_name': [first_err]
+                    }
+                })
+            })
+        )
+
+        renderSignupForm()
+
+        for (const key in data) {
+            const pHolder = nameToLabel(key)
+            const value = data[key as keyof typeof data]
+            fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
+        }
+
+        const elem = screen.getByTestId('genform-submit')
+        await act(() => fireEvent.click(elem) as never)
+
+        screen.getByText(email_err)
+    })
 })
 
-test('requestLogin update store on success', async () => {
-    const data = getSignupInit()
-    const profile = {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-    }
+describe("Initiate forgot password", () => {
 
-    server.use(
-        rest.post(getApi('login'), (req, res, ctx) => {
-            return res(ctx.json(profile))
-        })
-    )
+    describe("requestPasswordReset", () => {
 
-    const loginData = getLoginInit()
-    const res = await requestLogin(loginData, store.dispatch)
-    const U = store.getState().user
+        test("Should return success message", async () => {
+            const msg = {
+                message: 'Message has been sent to your mail'
+            }
 
-    expect(U.auth).toBeTruthy()
-    expect(U.profile).toEqual(profile)
-    expect(res.ok).toBeTruthy()
-})
+            server.use(
+                rest.post(getApi('resetPassword'), (req, res, ctx) => {
+                    return res(ctx.json(msg))
+                })
+            )
 
-test("requestLogin failed server validation", async () => {
-    const err = {
-        email: ['Email incorrect']
-    }
+            const loginData = {email: 'myke@mail.com'}
+            const res = await user_utils.requestPasswordReset(loginData, store.dispatch)
 
-    server.use(
-        rest.post(getApi('login'), (req, res, ctx) => {
-            return res(ctx.json(err), ctx.status(400))
-        })
-    )
+            expect(res.ok).toBeTruthy()
+            expect(res.response_data?.message).toEqual(msg.message)
+        });
 
-    const loginData = getLoginInit()
-    const res = await requestLogin(loginData, store.dispatch)
+        test("Should return errors on failed server validation", async () => {
+            const err = {
+                email: ['Email incorrect']
+            }
+            server.use(
+                rest.post(getApi('resetPassword'), (req, res, ctx) => {
+                    return res(ctx.json(err), ctx.status(400))
+                })
+            )
 
-    expect(res.ok).toBeFalsy()
-    expect(res.errors).toEqual(err)
-})
+            const loginData = {email: 'myke@mail.com'}
+            const res = await user_utils.requestPasswordReset(loginData, store.dispatch)
 
-test("requestLogin authentication failed", async () => {
-    const d = {email: 'jame@mail.com', password: 'ddd'}
-    const err = {
-        message: 'Login Failed. Incorrect email or password.'
-    }
+            expect(res.ok).toBeFalsy()
+            expect(res.errors).toEqual(err)
+        });
 
-    server.use(
-        rest.post(getApi('login'), (req, res, ctx) => {
-            return res(ctx.json(err), ctx.status(401))
-        })
-    )
+        test("Should return errors on 404 email not found", async () => {
+            const msg = {
+                message: 'No user with this email was found'
+            }
+            const err = {
+                email: [msg.message]
+            }
+            server.use(
+                rest.post(getApi('resetPassword'), (req, res, ctx) => {
+                    return res(ctx.json(msg), ctx.status(404))
+                })
+            )
 
-    const res = await requestLogin(d, store.dispatch)
+            const reqData = {email: 'myke@mail.com'}
+            const res = await user_utils.requestPasswordReset(reqData, store.dispatch)
 
-    expect(res.ok).toBeFalsy()
-    expect(res.errors).toEqual({'password': [err.message]})
-})
+            expect(res.ok).toBeFalsy()
+            expect(res.errors).toEqual(err)
+        });
+    })
 
-test("Login - update store with user - Integrated test", async () => {
-    const data = getSignupInit();
-    const profile = {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-    }
-    server.use(
-        rest.post(getApi('login'), (req, res, ctx) => {
-            return res(ctx.json(profile))
-        })
-    )
-    jest.spyOn(user_utils, 'requestLogin').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            dispatch(login(profile))
-            rs({ok: true})
-        })
-    )
-    renderLoginForm();
+    describe("Initiate forgot password - integraion test", () => {
 
-    const lg = getLoginInit()
-    for (const key in lg) {
-        const pHolder = nameToLabel(key)
-        const value = lg[key as keyof typeof lg]
-        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
-    }
+        test("Should update store with success message", async () => {
+            const data = {email: 'myke@mail.com'};
+            const msg = {
+                message: 'Message has been sent to your mail'
+            }
+            server.use(
+                rest.post(getApi('resetPassword'), (req, res, ctx) => {
+                    return res(ctx.json(msg))
+                })
+            )
+            jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
+                (data, dispatch) => new Promise((rs, rj) => {
+                    rs({ok: true, response_data: msg})
+                })
+            )
+            render(
+                <Provider store={store}>
+                    <ForgotPasswordForm />
+                </Provider>
+            )
 
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
+            const value = data.email
+            fireEvent.change(screen.getByPlaceholderText('Email'),{target: {value}})
 
-    const U = store.getState().user
+            const elem = screen.getByTestId('genform-submit')
+            await act(() => fireEvent.click(elem) as never)
 
-    expect(U.auth).toBeTruthy()
-    expect(U.profile).toEqual(profile)
-})
+            const U = store.getState().ui
+            expect(U.popupMessage).toEqual(msg.message)
+        });
 
-test("Login - Login failed render errors- Integrated test", async () => {
-    const data = getSignupInit();
-    const err_msg = 'Not a valid email address'
-    const err_res = {
-        email: [err_msg]
-    }
-    server.use(
-        rest.post(getApi('login'), (req, res, ctx) => {
-            return res(ctx.json(err_res), ctx.status(400))
-        })
-    )
-    jest.spyOn(user_utils, 'requestLogin').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: false, errors: err_res})
-        })
-    )
-    renderLoginForm();
+        test("Should render errors on email not found", async () => {
+            const data = {email: 'myke@mail.com'};
+            const msg = {
+                message: 'No user with the provided email'
+            }
+            server.use(
+                rest.post(getApi('resetPassword'), (req, res, ctx) => {
+                    return res(ctx.json(msg), ctx.status(404))
+                })
+            )
+            jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
+                (data, dispatch) => new Promise((rs, rj) => {
+                    rs({ok: false, errors: {email: [msg.message]}})
+                })
+            )
+            render(
+                <Provider store={store}>
+                    <ForgotPasswordForm />
+                </Provider>
+            )
 
-    const lg = getLoginInit()
-    for (const key in lg) {
-        const pHolder = nameToLabel(key)
-        const value = lg[key as keyof typeof lg]
-        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
-    }
+            const value = data.email
+            fireEvent.change(screen.getByPlaceholderText('Email'),{target: {value}})
 
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
+            const elem = screen.getByTestId('genform-submit')
+            await act(() => fireEvent.click(elem) as never)
 
-    const U = store.getState().user
+            const U = store.getState().ui
+            const errElem = screen.getByTestId('field-error')
 
-    expect(U.auth).toBeFalsy()
-    screen.getByText(err_msg)
-})
-
-test("Refresh basket after login", async () => {
-    const data = getSignupInit();
-    const profile = {
-        first_name: data.first_name,
-        last_name: data.last_name,
-        email: data.email,
-    }
-    server.use(
-        rest.post(getApi('login'), (req, res, ctx) => {
-            return res(ctx.json(profile))
-        })
-    )
-    server.use(
-        rest.get(getApi('basket'), (req, res, ctx) => {
-        return res(ctx.json(fakeBasket))
-        })
-    )
-    jest.spyOn(user_utils, 'requestLogin').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            dispatch(login(profile))
-            rs({ok: true})
-        })
-    )
-    renderLoginForm();
-
-    const lg = getLoginInit()
-    for (const key in lg) {
-        const pHolder = nameToLabel(key)
-        const value = lg[key as keyof typeof lg]
-        fireEvent.change(screen.getByPlaceholderText(pHolder),{target: {value}})
-    }
-
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
-
-    const B: IBasket = store.getState().cart
-
-    expect(B).toEqual(fakeBasket)
-})
-
-test("requestPasswordReset return success message", async () => {
-    const msg = {
-        message: 'Message has been sent to your mail'
-    }
-
-    server.use(
-        rest.post(getApi('resetPassword'), (req, res, ctx) => {
-            return res(ctx.json(msg))
-        })
-    )
-
-    const loginData = {email: 'myke@mail.com'}
-    const res = await user_utils.requestPasswordReset(loginData, store.dispatch)
-
-    expect(res.ok).toBeTruthy()
-    expect(res.response_data?.message).toEqual(msg.message)
-
-})
-
-test("requestPasswordReset failed server validation", async () => {
-    const err = {
-        email: ['Email incorrect']
-    }
-
-    server.use(
-        rest.post(getApi('resetPassword'), (req, res, ctx) => {
-            return res(ctx.json(err), ctx.status(400))
-        })
-    )
-
-    const loginData = {email: 'myke@mail.com'}
-    const res = await user_utils.requestPasswordReset(loginData, store.dispatch)
-
-    expect(res.ok).toBeFalsy()
-    expect(res.errors).toEqual(err)
-})
-
-test("requestPasswordReset 404 email not found", async () => {
-    const msg = {
-        message: 'No user with this email was found'
-    }
-    const err = {
-        email: [msg.message]
-    }
-
-    server.use(
-        rest.post(getApi('resetPassword'), (req, res, ctx) => {
-            return res(ctx.json(msg), ctx.status(404))
-        })
-    )
-
-    const reqData = {email: 'myke@mail.com'}
-    const res = await user_utils.requestPasswordReset(reqData, store.dispatch)
-
-    expect(res.ok).toBeFalsy()
-    expect(res.errors).toEqual(err)
-})
-
-test("Request password reset success - Integrated test", async () => {
-    const data = {email: 'myke@mail.com'};
-    const msg = {
-        message: 'Message has been sent to your mail'
-    }
-    server.use(
-        rest.post(getApi('resetPassword'), (req, res, ctx) => {
-            return res(ctx.json(msg))
-        })
-    )
-    jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: true, response_data: msg})
-        })
-    )
-    render(
-        <Provider store={store}>
-            <ForgotPasswordForm />
-        </Provider>
-    )
-
-    const value = data.email
-    fireEvent.change(screen.getByPlaceholderText('Email'),{target: {value}})
-
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
-
-    const U = store.getState().ui
-
-
-    expect(U.popupMessage).toEqual(msg.message)
-})
-
-test("Request password reset email not found- Integrated test", async () => {
-    const data = {email: 'myke@mail.com'};
-    const msg = {
-        message: 'No user with the provided email'
-    }
-    server.use(
-        rest.post(getApi('resetPassword'), (req, res, ctx) => {
-            return res(ctx.json(msg), ctx.status(404))
-        })
-    )
-    jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
-        (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: false, errors: {email: [msg.message]}})
-        })
-    )
-    render(
-        <Provider store={store}>
-            <ForgotPasswordForm />
-        </Provider>
-    )
-
-    const value = data.email
-    fireEvent.change(screen.getByPlaceholderText('Email'),{target: {value}})
-
-    const elem = screen.getByTestId('genform-submit')
-    await act(() => fireEvent.click(elem) as never)
-
-    const U = store.getState().ui
-    const errElem = screen.getByTestId('field-error')
-
-    expect(errElem.textContent).toEqual(msg.message)
+            expect(errElem.textContent).toEqual(msg.message)
+        });
+    });
 })

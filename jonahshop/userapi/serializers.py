@@ -56,7 +56,8 @@ class ConfirmReseSerializer(serializers.Serializer):
         
     def validate_token(self, value):
         if not default_token_generator.check_token(self.user, value):
-            raise serializers.ValidationError("Token incorrect or has expired")
+            msg = "Token is incorrect, has already been used, or has expired."
+            raise serializers.ValidationError(msg)
         return value
 
 

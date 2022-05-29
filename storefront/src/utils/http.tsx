@@ -5,13 +5,15 @@ import { newMessage } from '../actions';
 
 type RequestArgs = {
     url: string,
-    options?: RequestInit,
+    ignore_errors?: number[],
+    data: Record<string, string> | null,
     dispatch?: (action: Action) => {},
-    ignore_errors?: number[]
+    options?: RequestInit,
 }
 
 
-export const makeRequest = (method: string) => async ({url, options, dispatch, ignore_errors}: RequestArgs) => {
+export const makeRequest = (method: string) => async (props: RequestArgs) => {
+    const {url, data, ignore_errors, dispatch, options} = props
     const defaultOpts: RequestInit = {
         method,
         credentials: 'same-origin',
@@ -20,12 +22,14 @@ export const makeRequest = (method: string) => async ({url, options, dispatch, i
             "X-CSRFToken": getCSRFcookie(),
         },
     }
-
-    const argOpts = options || {}
     const ie = ignore_errors
+
+    let argOpts = options ? options : {}
+    argOpts = data ? {...argOpts, body: JSON.stringify(data)} : argOpts
 
     try {
         const response = await fetch(url, { ...defaultOpts, ...argOpts })
+        const responseClone = response.clone()
         // all http error responses (400+) which are not included
         // in 'ignore_errors' are handled here, generically.
         // We also only attempt to handle unhandled errors if the 'ignore_errors'
@@ -38,7 +42,9 @@ export const makeRequest = (method: string) => async ({url, options, dispatch, i
             const msg = json.message || "Request failed. Please try again later."
             dispatch && dispatch(newMessage(msg))
         }
-        return response
+        // return the close to other function can do
+        // response.json() again
+        return responseClone
     } catch(e: any) {
         // deal with client side errors (like network connectivity) generically
         // Catch the error (client side erros) and show the error message
