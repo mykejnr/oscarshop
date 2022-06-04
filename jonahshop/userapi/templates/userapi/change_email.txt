@@ -1,0 +1,14 @@
+Use the blow link to confirm your new email address
+===============================================
+
+Link:
+{{reset_url}}
+
+Or
+
+visit:
+{{base_url}}
+
+And enter the following datails into the form
+uuid: {{uuid64}}
+token: {{token}}

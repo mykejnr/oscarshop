@@ -10,6 +10,7 @@ from rest_framework.test import APITestCase
 from rest_framework import status
 
 from userapi import views
+from userapi.token import ChangeEmailTokenGenerator
 
 User = get_user_model()
 
@@ -444,4 +445,192 @@ class GetUserTestCase(APITestCase):
         self.assertEqual(
             status.HTTP_403_FORBIDDEN,
             response.status_code
+        )
+
+
+class ChangeEmailTestCase(APITestCase):
+    def test_invockes_function_to_send_email(self):
+        data = {
+            'email': 'toreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        user = User.objects.create_user(email=data['email'], password=data['password'])
+        # login is requried for this test
+        self.client.post(reverse('login'), data)
+
+        uid = '13kiwdkSkdfkHel323Sd'
+        token = '123488293003972003949920'
+
+        change_data = {
+            'password': data['password'],
+            'new_email': 'newemail@mail.com'
+        }
+
+        with patch("userapi.views.send_change_email_message.delay") as email_mock, \
+            patch("userapi.views.urlsafe_base64_encode") as encode_mock, \
+            patch.object(views.ChangeEmailTokenGenerator, 'make_token') as token_mock:
+
+            encode_mock.return_value = uid
+            token_mock.return_value = token
+            res = self.client.post(reverse('change_email'), change_data)
+
+        encode_mock.assert_called_with(force_bytes(change_data['new_email']))
+        token_mock.assert_called_with(user)
+
+        email_mock.assert_called_with(
+            change_data['new_email'], uid, token,
+            res.wsgi_request.build_absolute_uri('/change-email')
+        )
+
+    @patch("userapi.views.send_reset_email")
+    def test_return_400_email_already_exit(self, mock_meth):
+        data = {
+            'email': 'toreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        User.objects.create_user(email=data['email'], password=data['password'])
+        # login is requried for this test
+        self.client.post(reverse('login'), data)
+
+        change_data = {
+            'password': data['password'],
+            'new_email': data['email'],
+        }
+
+        response = self.client.post(reverse('change_email'), change_data)
+
+        self.assertEqual(
+            response.status_code, status.HTTP_400_BAD_REQUEST
+        )
+
+    @patch("userapi.views.send_reset_email")
+    def test_return_400_wrong_password(self, mock_meth):
+        data = {
+            'email': 'toreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        User.objects.create_user(email=data['email'], password=data['password'])
+        # login is requried for this test
+        self.client.post(reverse('login'), data)
+
+        change_data = {
+            'password': 'wrongPassword',
+            'new_email': 'newmail@email.com',
+        }
+
+        response = self.client.post(reverse('change_email'), change_data)
+        self.assertEqual(
+            response.status_code, status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_allow_only_authenticated_users(self):
+        change_data = {
+            'password': 'wrongPassword',
+            'new_email': 'newmail@email.com',
+        }
+        response = self.client.post(reverse('change_email'), change_data)
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )
+
+
+class ActivateEmailTestCase(APITestCase):
+    def test_allow_only_authenticated_users(self):
+        change_data = {
+            'uuid': 'KIEKkekISeOIeormdKS',
+            'token': 'sdfeiSedreiel323498fj'
+        }
+        response = self.client.post(reverse('activate_email'), change_data)
+        self.assertEqual(
+            response.status_code, status.HTTP_403_FORBIDDEN
+        )
+
+    def test_accept_only_post_request(self):
+        data = {
+            'email': 'toreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        User.objects.create_user(email=data['email'], password=data['password'])
+        # login is requried for this test
+        self.client.post(reverse('login'), data)
+
+        response = self.client.get(reverse('activate_email'))
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED
+        )
+
+    def test_changes_email(self):
+        data = {
+            'email': 'toreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        user = User.objects.create_user(email=data['email'], password=data['password'])
+        self.client.post(reverse('login'), data)
+
+        new_email = 'newemail@mail.com'
+        uuid = urlsafe_base64_encode(force_bytes(new_email))
+        token_gen = ChangeEmailTokenGenerator(new_email)
+        token = token_gen.make_token(user)
+
+        reset_data = {
+            'uuid': uuid,
+            'token': token
+        }
+
+        response = self.client.post(reverse('activate_email'), reset_data)
+
+        user.refresh_from_db()
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(user.email, new_email)
+
+
+    def test_reject_wrong_uuid(self):
+        data = {
+            'email': 'confirmreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        user = User.objects.create_user(email=data['email'], password=data['password'])
+        self.client.post(reverse('login'), data)
+
+        new_email = 'newemail@mail.com'
+        token_gen = ChangeEmailTokenGenerator(new_email)
+        token = token_gen.make_token(user)
+
+        reset_data = {
+            'uuid': urlsafe_base64_encode(force_bytes('wrongEmail')),
+            'token': token,
+        }
+
+        response = self.client.post(reverse('activate_email'), reset_data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_reject_wrong_token(self):
+        data = {
+            'email': 'confirmreset@testmail.com',
+            'password': "testPaswrord"
+        }
+        user = User.objects.create_user(email=data['email'], password=data['password'])
+        self.client.post(reverse('login'), data)
+
+        new_email = 'newemail@mail.com'
+        uuid = urlsafe_base64_encode(force_bytes(new_email))
+        # ChangeEmailTokenGenerator expects new_email not user.email
+        token_gen = ChangeEmailTokenGenerator(user.email)
+        token = token_gen.make_token(user)
+
+        reset_data = {
+            'uuid': uuid,
+            'token': token,
+        }
+
+        response = self.client.post(reverse('confirm_reset'), reset_data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
         )

@@ -2,9 +2,13 @@ from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.encoding import force_bytes
 from django.contrib.auth import get_user_model
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+
+from userapi.token import ChangeEmailTokenGenerator
 
 User = get_user_model()
 
@@ -97,7 +101,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         super().__init__(instance, data, **kwargs)
 
     def validate_old_password(self, value):
-        if self.user.check_password(self.initial_data['old_password']):
+        if self.user.check_password(value):
             return value
         raise serializers.ValidationError("Password incorrect.")
 
@@ -105,3 +109,64 @@ class ChangePasswordSerializer(serializers.Serializer):
         if value != self.initial_data['new_password']:
             raise serializers.ValidationError("Passwords do no match")
         return value
+
+
+class ChangeEmailSerializer(serializers.Serializer):
+    password = serializers.CharField(required=True, max_length=100)
+    new_email = serializers.EmailField(required=True)
+
+    def __init__(self, instance=None, data=..., **kwargs):
+        self.request = kwargs.pop('request')
+        self.user: User = self.request.user
+        super().__init__(instance, data, **kwargs)
+
+    def validate_password(self, value):
+        if self.user.check_password(value):
+            return value
+        raise serializers.ValidationError("Password incorrect.")
+
+    def validate_new_email(self, value):
+        try:
+            User.objects.get(email=value)
+        except User.DoesNotExist:
+            return value
+
+        message="This email address is used by another user."
+        raise serializers.ValidationError(message)
+
+
+class ActivateEmailSerializer(serializers.Serializer):
+    def __init__(self, instance=None, data=..., **kwargs):
+        self.request = kwargs.pop('request')
+        self.user = self.request.user
+        self._new_email = None
+        super().__init__(instance, data, **kwargs)
+
+    uuid = serializers.CharField(required=True, max_length=100)
+    token = serializers.CharField(required=True, max_length=100)
+
+    def validate_uuid(self, value):
+
+        try:
+            email = urlsafe_base64_decode(value).decode()
+            validate_email(email)
+            self._new_email = email
+        except ValidationError:
+            raise serializers.ValidationError("Invalid uuid")
+        except:
+            raise serializers.ValidationError("Bad uuid")
+
+        return value
+        
+    def validate_token(self, value):
+        token_gen = ChangeEmailTokenGenerator(self._new_email)
+        if not token_gen.check_token(self.user, value):
+            msg = "Token is incorrect, has already been used, or has expired."
+            raise serializers.ValidationError(msg)
+        return value
+
+    @property
+    def validated_data(self):
+        vd = super().validated_data
+        vd['new_email'] = self._new_email
+        return vd

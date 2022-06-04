@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model, login, authenticate, logout
 from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
 from rest_framework import status
@@ -9,8 +9,19 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from userapi.serializers import ChangePasswordSerializer, ConfirmReseSerializer, LoginSerializer, ResetPasswordSerializer, SignupSerializer, UserSerializer
-from userapi.tasks import send_reset_email
+from userapi.serializers import (
+    ActivateEmailSerializer,
+    ChangeEmailSerializer,
+    ChangePasswordSerializer,
+    ConfirmReseSerializer,
+    LoginSerializer,
+    ResetPasswordSerializer,
+    SignupSerializer,
+    UserSerializer
+)
+
+from userapi.tasks import send_reset_email, send_change_email_message
+from userapi.token import ChangeEmailTokenGenerator
 
 
 User = get_user_model()
@@ -144,3 +155,40 @@ def update_user(request):
     
     u_ser.save()
     return Response(u_ser.data)
+
+
+@api_view(['POST'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def change_email(request):
+    c_ser = ChangeEmailSerializer(data=request.data, request=request)
+    if not c_ser.is_valid():
+        return Response(c_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    em = c_ser.validated_data['new_email']
+    token_gen = ChangeEmailTokenGenerator(em)
+
+    uid = urlsafe_base64_encode(force_bytes(em))
+    token = token_gen.make_token(request.user)
+
+    base_url = request.build_absolute_uri('/change-email')
+    send_change_email_message.delay(em, uid, token, base_url) # celery task
+
+    msg = f"A message with a link to confirm your new email has been sent to {em}."
+    msg = f"{msg} Your old email address will remain unchanged until you confirm the new one."
+    return Response({'message': msg})
+
+
+@api_view(['POST'])
+@authentication_classes([SessionAuthentication])
+@permission_classes([IsAuthenticated])
+def activate_email(request):
+    a_ser = ActivateEmailSerializer(data=request.data, request=request)
+    if not a_ser.is_valid():
+        print(a_ser.errors)
+        return Response(a_ser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    request.user.email = a_ser.validated_data['new_email']
+    request.user.save()
+
+    return Response()
