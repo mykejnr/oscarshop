@@ -1,7 +1,9 @@
 import Form, { TFormFields } from './base'
-import { requestLogin, requestPasswordReset, requestSignup } from '../utils/user'
+import { requestChangePassword, requestLogin, requestPasswordReset, requestSignup } from '../utils/user'
 import { useDispatch } from 'react-redux'
 import { fetchBasket, newMessage, showDialog, showPopup } from '../actions'
+import { logout } from '../reducers/user_reducer'
+import { clearCart } from '../reducers/cart_reducer'
 
 
 const afterSubmitOk = (message: string, dispatch: (f: any) => any ) => () => {
@@ -85,7 +87,7 @@ export const ForgotPasswordForm = () => {
   const afterSubmit = (responseData: Record<string, string> | void) => {
     dispatch(showDialog('nodialog'))
     responseData &&
-    dispatch(showPopup(responseData.message))
+    dispatch(showPopup({message: responseData.message}))
   }
 
   // key=2.... number of fields + 1
@@ -101,6 +103,35 @@ export const ForgotPasswordForm = () => {
       asyncSubmit={requestPasswordReset}
       afterSubmitOk={afterSubmit}
       getFields={getFields}
+    />
+  )
+}
+
+
+export const ChangePasswordForm = () => {
+  const dispatch = useDispatch()
+
+  const fields: TFormFields<IChangePasswordData> = {
+    old_password: {type: 'password', required: true},
+    new_password: {type: 'password', required: true},
+    confirm_password: {type: 'password', required: true}
+  }
+
+  const afterSubmit = (responseData: Record<string, string> | void) => {
+    dispatch(logout())
+    dispatch(clearCart())
+    dispatch(showDialog('nodialog'))
+    dispatch(showPopup({
+      title: "Password change successful",
+      message: "You have been logged out of the previous session. You may have to login again."
+    }))
+  }
+
+  return (
+    <Form<IChangePasswordData>
+      fields={fields}
+      asyncSubmit={requestChangePassword}
+      afterSubmitOk={afterSubmit}
     />
   )
 }

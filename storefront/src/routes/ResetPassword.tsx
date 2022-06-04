@@ -21,7 +21,7 @@ const ResetPassword = () => {
   const afterSubmitOk = () => {
     const msg = "Password reset successful. You can now login."
     navigate('/')
-    dispatch(showPopup(msg))
+    dispatch(showPopup({message: msg}))
   }
 
   return (

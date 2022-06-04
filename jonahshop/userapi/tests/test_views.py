@@ -155,13 +155,15 @@ class ResetPasswordTestCase(APITestCase):
             encode_mock.return_value = uid
             token_mock.return_value = token
             data.pop('password')
-            self.client.post(reverse('reset_password'), data)
+            res = self.client.post(reverse('reset_password'), data)
 
         encode_mock.assert_called_with(force_bytes(data['email']))
         token_mock.assert_called_with(user)
 
-        # email_mock.assert_called_with(response.wsgi_request, uid, token)
-        email_mock.assert_called_with(ANY, uid, token)
+        email_mock.assert_called_with(
+            data['email'], uid, token,
+            res.wsgi_request.build_absolute_uri('/reset-password')
+        )
 
     @patch("userapi.views.send_reset_email")
     def test_return_404_email_dosent_exit(self, mock_meth):
@@ -337,6 +339,28 @@ class ChangePasswordTestCase(APITestCase):
 
         change_data = {
             'password': data['password'], #invalid key
+            'new_password': 'new-password',
+            'confirm_password': 'new-password',
+        }
+
+        response = self.client.post(reverse('change_password'), change_data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )
+
+    def test_reject_invalid_old_password(self):
+        data = {
+            'email': 'unmatch@testmail.com',
+            'password': "testPaswrord"
+        }
+        User.objects.create_user(email=data['email'], password=data['password'])
+
+        self.client.post(reverse('login'), data)
+
+        change_data = {
+            'old_password': 'wrongPassw$&D', # wrong password
             'new_password': 'new-password',
             'confirm_password': 'new-password',
         }

@@ -334,7 +334,7 @@ describe("Initiate forgot password", () => {
             await act(() => fireEvent.click(elem) as never)
 
             const U = store.getState().ui
-            expect(U.popupMessage).toEqual(msg.message)
+            expect(U.popupMessage).toEqual({message: msg.message})
         });
 
         test("Should render errors on email not found", async () => {

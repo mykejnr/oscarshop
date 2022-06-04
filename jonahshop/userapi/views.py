@@ -122,7 +122,7 @@ def signout(request):
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsAuthenticated])
 def change_password(request):
-    c_ser = ChangePasswordSerializer(data=request.data)
+    c_ser = ChangePasswordSerializer(data=request.data, request=request)
     if not c_ser.is_valid():
         return Response(c_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 

@@ -32,28 +32,34 @@ beforeEach(() => {
 afterEach(() => server.resetHandlers())
 afterAll(() => server.close())
 
-const renderResetForm = () => {
-    const history = createMemoryHistory()
-    history.push('/reset-password')
-
-    return [history, render(
-        <Provider store={store}>
-            <Router location='/reset-password' navigator={history}>
-                <Routes>
-                    <Route path='/' element={<div data-testid='test-home'></div>}/>
-                    <Route path='/reset-password' element={<ResetPassword />}/>
-                </Routes>
-            </Router>
-        </Provider>
-    )]
-}
-
 const resetData = {
     uuid: 'xxxxxxxxxxiiiii',
     token: '2233344544555555',
     password: '**************'
 }
 
+const getUrl = () => {
+    const [uuid, token] = [resetData.uuid, resetData.token]
+    const url = `/reset-password/${uuid}/${token}`
+    return url
+}
+
+const renderResetForm = () => {
+    const history = createMemoryHistory()
+    const url = getUrl()
+    history.push(url)
+
+    return [history, render(
+        <Provider store={store}>
+            <Router location={url} navigator={history}>
+                <Routes>
+                    <Route path='/' element={<div data-testid='test-home'></div>}/>
+                    <Route path='/reset-password/:uuid/:token' element={<ResetPassword />}/>
+                </Routes>
+            </Router>
+        </Provider>
+    )]
+}
 
 test("confirmResetPassword() - Should return ok when successefull", async () => {
 
@@ -105,18 +111,16 @@ test("Should display success message and redirect after reset - Integration", as
     const uuidEl = screen.getByPlaceholderText('Uuid')
     const tokenEl = screen.getByPlaceholderText('Token')
     fireEvent.change(inputEl, {target: {value: '*******'}})
-    fireEvent.change(uuidEl, {target: {value: 'uuid'}})
-    fireEvent.change(tokenEl, {target: {value: 'token'}})
 
-    expect(history.location.pathname).toBe('/reset-password')
+    expect(history.location.pathname).toBe(getUrl())
 
     const btnEl = screen.getByTestId('genform-submit')
     await act(() => fireEvent.click(btnEl) as never)
 
     const U: iUI = store.getState().ui
-    expect(U.popupMessage).toEqual(
-        'Password reset successful. You can now login.'
-    )
+    expect(U.popupMessage).toEqual({
+        message: 'Password reset successful. You can now login.'
+    })
 
     expect(history.location.pathname).toBe('/')
 })

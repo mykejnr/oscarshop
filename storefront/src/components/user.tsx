@@ -14,8 +14,11 @@ type ActionButtonProps = {
   onClick: () => void,
 }
 
-const ActionButton = ({text, Icon}: ActionButtonProps) => (
-  <button className="block flex gap-4 items-center mb-4 hover:text-accent-400">
+const ActionButton = ({text, Icon, onClick}: ActionButtonProps) => (
+  <button
+    className="flex gap-4 items-center mb-4 hover:text-accent-400"
+    onClick={onClick}
+  >
     <Icon size="18" />
     <span>{text}</span>
   </button>
@@ -41,16 +44,18 @@ const Cart = () => {
 
 
 const SignedInUser = () => {
+  const dispatch = useDispatch()
+
   return (
     <>
       <Cart />
       <div className="p-5">
         <ActionButton text="Edit profile" Icon={FaUser} onClick={() => {}} />
         <ActionButton text="Change email address" Icon={MdEmail} onClick={() => {}} />
-        <ActionButton text="Change password" Icon={FaKey} onClick={() => {}} />
+        <ActionButton text="Change password" Icon={FaKey} onClick={() => dispatch(showDialog('change_password'))} />
       </div>
       <div className="bg-gray-50 p-4 ">
-          <button className="flex justify-end gap-1 font-semibold hover:text-accent-400 items-center block ml-auto">
+          <button className="flex justify-end gap-1 font-semibold hover:text-accent-400 items-center ml-auto">
             <FaSignOutAlt size="18" />
             <span className="">Logout</span>
           </button>

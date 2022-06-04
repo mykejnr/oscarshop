@@ -4,20 +4,33 @@ import { showPopup } from "../actions"
 
 export const PopupMessage = () => {
   const dispatch = useDispatch()
-  const uiState = useSelector((state: IRootState) => state.ui)
-  const show = Boolean(uiState.popupMessage)
+  const popup = useSelector((state: IRootState) => state.ui.popupMessage)
 
-  const styles = "dialog bg-white min-w-[280px] box-border py-3 px-5 rounded-md shadow-md max-w-[360px] border-t-4 border-accent-400"
+  let show = false
+  let title = "Message"
+  let message = ""
+
+  if (popup) {
+    show = true
+    title = popup.title || title
+    message = popup.message
+  }
+
+  const styles = "dialog bg-white w-[600px] box-border rounded-b-md shadow-md border-b-4 border-accent-400"
 
   return (
     <Transition in={show} timeout={300} unmountOnExit>
       {state => (
-        <div className="fixed inset-0 bg-black bg-opacity-10 flex justify-center items-center">
+        // <div className="fixed inset-0 bg-black bg-opacity-10 flex justify-center items-center">
+        <div className="fixed inset-0 bg-black bg-opacity-10 flex justify-center items-start pt-2">
           <div className={`${styles} dialog-${state}}`}>
-            <div data-testid="popup-msg" className="pb-8 text-black">{uiState.popupMessage}</div>
-            <button type="button" className="button block ml-auto w-20" onClick={() => dispatch(showPopup())}>
-              Ok
-            </button>
+            <div className='border-b py-3 px-5 text-accent-500'>{title}</div>
+            <div className=' py-3 px-5'>
+              <div data-testid="popup-msg" className="pb-8">{message}</div>
+              <button type="button" className="button block ml-auto w-20" onClick={() => dispatch(showPopup())}>
+                Ok
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -24,34 +24,27 @@ class SendResetEmail(TestCase):
         uuid = 'wwexkwERE38idw0skdi'
         token = 'SERSdieX800lXwere'
 
-        class FakeUser:
-            email = 'mykejnr4@gmail.com'
-
-        class FakeRequest:
-            user = FakeUser()
-            def build_absolute_uri(self, p):
-                return 'http://uuuu.com'
-
-        request = FakeRequest()
-
+        base_url = 'http://test.com'
+        email = 'mykejnr4@gmail.com'
 
         with patch('userapi.tasks.send_mail') as mail_mock, \
             patch('userapi.tasks.render_to_string') as render_mock:
             render_mock.return_value = email_string
-            tasks.send_reset_email(request, uuid, token)
+            tasks.send_reset_email(
+                email, uuid, token, base_url)
 
         render_mock.assert_called_with(
             'userapi/email_reset_password.html',
             {
                 'token': token,
                 'uuid64': uuid,
-                'base_url': request.build_absolute_uri('/'),
-                'reset_url': f'{request.build_absolute_uri("/")}/{uuid}/{token}'
+                'base_url': base_url,
+                'reset_url': f'{base_url}/{uuid}/{token}'
             }
         )
 
         mail_mock.assert_called_with(
-            recipients=[request.user.email],
+            recipients=[email],
             subject='Reset password',
             body_text=email_string,
             body_html=email_string,

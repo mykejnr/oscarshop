@@ -34,11 +34,16 @@ interface IBasket {
     lines: [IBasketLine]
 }
 
+interface IPopupMessage {
+    title?: string,
+    message: string,
+}
+
 interface iUI {
     miniCartVisible: boolean,
     miniUserVisible: boolean,
     activeDialog: import("../dialog/dialog").TDialogName,
-    popupMessage: string | undefined
+    popupMessage: IPopupMessage | undefined
 }
 
 interface IProductType {
@@ -124,4 +129,10 @@ interface IResetPasswordData extends Record<string, string> {
     uuid: string,
     token: string,
     password: string,
+}
+
+interface IChangePasswordData extends Record<string, string> {
+    old_password: string,
+    new_password: string,
+    confirm_password: string,
 }

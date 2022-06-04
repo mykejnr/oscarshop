@@ -91,6 +91,16 @@ class ChangePasswordSerializer(serializers.Serializer):
     new_password = serializers.CharField(required=True, max_length=100)
     confirm_password = serializers.CharField(required=True, max_length=100)
 
+    def __init__(self, instance=None, data=..., **kwargs):
+        self.request = kwargs.pop('request')
+        self.user: User = self.request.user
+        super().__init__(instance, data, **kwargs)
+
+    def validate_old_password(self, value):
+        if self.user.check_password(self.initial_data['old_password']):
+            return value
+        raise serializers.ValidationError("Password incorrect.")
+
     def validate_confirm_password(self, value):
         if value != self.initial_data['new_password']:
             raise serializers.ValidationError("Passwords do no match")

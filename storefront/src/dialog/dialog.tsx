@@ -1,9 +1,9 @@
 import { useDispatch, useSelector } from "react-redux"
 import { Transition } from 'react-transition-group';
-import { FaWindowClose, FaUser } from 'react-icons/fa';
+import { FaWindowClose, FaUser, FaKey } from 'react-icons/fa';
 import { IconType } from 'react-icons';
 import { showDialog } from "../actions";
-import { ForgotPasswordForm, LoginForm, SignupForm } from "../forms";
+import { ChangePasswordForm, ForgotPasswordForm, LoginForm, SignupForm } from "../forms";
 
 type TDialogHeadProps = {
   title: string,
@@ -20,6 +20,7 @@ const dialogs = asRecord({
   'login': [LoginForm, 'Login', FaUser],
   'nodialog': [() => <div data-testid='nodialog'></div>, '', FaWindowClose],
   'forgot_password': [ForgotPasswordForm, 'Forgot Password', FaUser],
+  'change_password': [ChangePasswordForm, 'Change Password', FaKey],
 })
 
 

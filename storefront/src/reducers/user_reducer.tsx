@@ -26,6 +26,10 @@ export const userSlice = createSlice({
     },
     login(state, action: PayloadAction<ILoginReturn>) {
       setUser(state, action)
+    },
+    logout(state) {
+      state.auth = false
+      state.profile = undefined
     }
   },
   extraReducers: (builder) => {
@@ -42,5 +46,5 @@ export const userSlice = createSlice({
 })
 
 
-export const { signup, login } = userSlice.actions
+export const { signup, login, logout } = userSlice.actions
 export const userReducer = userSlice.reducer

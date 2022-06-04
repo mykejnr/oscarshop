@@ -83,3 +83,17 @@ export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: L
 
     return res
 }
+
+export const requestChangePassword = async (data: IChangePasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IChangePasswordData>> => {
+    const url = getApi('changePassword')
+    const ignore_errors = [ 400 ]
+
+    const response = await post({url, ignore_errors, dispatch, data})
+    const res = {ok: response.ok, errors: undefined}
+
+    if (response.status === 400) {
+        res.errors = await response.json()
+    }
+
+    return res
+}

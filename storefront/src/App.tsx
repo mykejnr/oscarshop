@@ -21,6 +21,7 @@ const Layout = () => (
     <Dialog name="signup" />
     <Dialog name="login" />
     <Dialog name="forgot_password" />
+    <Dialog name="change_password" />
     <PopupMessage />
   </div>
 )

@@ -50,7 +50,11 @@ const _updateCart = (state, action) => {
 export const cartSlice = createSlice({
   name: CART,
   initialState,
-  reducers: {},
+  reducers: {
+    clearCart() {
+      return initialState
+    }
+  },
   extraReducers: (builder) => {
     builder.addCase(addToCart.fulfilled, (state, action) => {
       _updateCart(state, action)
@@ -63,4 +67,5 @@ export const cartSlice = createSlice({
 })
 
 
+export const { clearCart } = cartSlice.actions
 export const cartReducer = cartSlice.reducer
