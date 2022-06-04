@@ -104,7 +104,7 @@ test("Should display success message after change - Integration", async () => {
     const U: iUI = store.getState().ui
     expect(U.popupMessage).toEqual({
       title: "Password change successful",
-      message: "You have been logged out. You must log back in."
+      message: "You have been logged out of the previous session. You may have to login again."
     })
 })
 

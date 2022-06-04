@@ -43,7 +43,7 @@ interface iUI {
     miniCartVisible: boolean,
     miniUserVisible: boolean,
     activeDialog: import("../dialog/dialog").TDialogName,
-    popupMessage: IPopupMessage | undefined
+    popupMessage: TPopupMessage
 }
 
 interface IProductType {
@@ -115,12 +115,6 @@ interface ILoginFormData extends Record<string, string> {
 
 interface ILoginReturn extends IUserReturnBase {}
 
-type TFormDataResponse<TFormData> = {
-    ok: boolean,
-    errors?: Record<keyof TFormData, string[]>,
-    response_data?: Record<string, string>
-}
-
 interface IForgotPasswordData extends Record<string, string> {
     email: string
 }
@@ -136,3 +130,23 @@ interface IChangePasswordData extends Record<string, string> {
     new_password: string,
     confirm_password: string,
 }
+
+interface IChangeEmailData extends Record<string, string> {
+    password: string,
+    new_email: string,
+}
+
+interface IActivateEmailData extends Record<string, string> {
+    uuid: string,
+    token: string,
+}
+
+type TFormDataResponse<TFormData> = {
+    ok: boolean,
+    errors?: Record<keyof TFormData, string[]>,
+    response_data?: Record<string, string>
+}
+
+type TOkResponse = Record<string, string>
+
+type TPopupMessage = IPopupMessage | 'nopopup'

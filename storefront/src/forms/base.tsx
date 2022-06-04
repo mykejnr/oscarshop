@@ -82,7 +82,7 @@ export const Input = <TFormData, >(props: TInputProps<TFormData>) => {
   } = props;
 
   const ph = placeholder ? placeholder : nameToLabel(props.name)
-  const disAstyles = disabled ? 'bg-gray-100' : ''
+  const disAstyles = disabled ? 'bg-gray-100 text-gray-300' : ''
 
   return (
     <div className="w-full box-border">

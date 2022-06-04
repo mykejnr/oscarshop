@@ -1,7 +1,7 @@
 import { Action } from 'redux';
 import { getApi } from "../api";
 import { post } from "../utils/http";
-import { login, signup } from '../reducers/user_reducer';
+import { changeEmail, login, signup } from '../reducers/user_reducer';
 
 
 // LT = "Local Type" - incase redux make theirs public
@@ -84,6 +84,7 @@ export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: L
     return res
 }
 
+
 export const requestChangePassword = async (data: IChangePasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IChangePasswordData>> => {
     const url = getApi('changePassword')
     const ignore_errors = [ 400 ]
@@ -92,6 +93,42 @@ export const requestChangePassword = async (data: IChangePasswordData, dispatch:
     const res = {ok: response.ok, errors: undefined}
 
     if (response.status === 400) {
+        res.errors = await response.json()
+    }
+
+    return res
+}
+
+
+export const requestChangeEmail = async (data: IChangeEmailData, dispatch: LTDispatch): Promise<TFormDataResponse<IChangeEmailData>> => {
+    const url = getApi('changeEmail')
+    const ignore_errors = [ 400 ]
+
+    const response = await post({url, ignore_errors, dispatch, data})
+    const res = {ok: response.ok, errors: undefined, response_data: undefined}
+
+    if (response.ok) {
+        res.response_data = await response.json()
+    } else if (response.status === 400) {
+        res.errors = await response.json()
+    }
+
+    return res
+}
+
+
+export const requestActivateEmail = async (data: IActivateEmailData, dispatch: LTDispatch): Promise<TFormDataResponse<IActivateEmailData>> => {
+    const url = getApi('activateEmail')
+    const ignore_errors = [ 400 ]
+
+    const response = await post({url, ignore_errors, dispatch, data})
+    const res = {ok: response.ok, errors: undefined, response_data: undefined}
+
+    if (response.ok) {
+        const json = await response.json()
+        res.response_data = json
+        dispatch(changeEmail(json.new_email))
+    } else if (response.status === 400) {
         res.errors = await response.json()
     }
 

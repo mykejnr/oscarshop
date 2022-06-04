@@ -171,7 +171,7 @@ def change_email(request):
     uid = urlsafe_base64_encode(force_bytes(em))
     token = token_gen.make_token(request.user)
 
-    base_url = request.build_absolute_uri('/change-email')
+    base_url = request.build_absolute_uri('/activate-email')
     send_change_email_message.delay(em, uid, token, base_url) # celery task
 
     msg = f"A message with a link to confirm your new email has been sent to {em}."
@@ -185,10 +185,13 @@ def change_email(request):
 def activate_email(request):
     a_ser = ActivateEmailSerializer(data=request.data, request=request)
     if not a_ser.is_valid():
-        print(a_ser.errors)
         return Response(a_ser.errors, status=status.HTTP_400_BAD_REQUEST)
 
     request.user.email = a_ser.validated_data['new_email']
     request.user.save()
 
-    return Response()
+    message = f'Your email address has now been changed to {request.user.email}.'
+    return Response({
+        'message': message,
+        'new_email': request.user.email
+    })

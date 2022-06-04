@@ -5,7 +5,7 @@ const initialState: iUI = {
   miniCartVisible: false,
   miniUserVisible: false,
   activeDialog: 'nodialog',
-  popupMessage: undefined,
+  popupMessage: 'nopopup',
 }
 
 const uiReducer = createReducer(initialState, (builder) => {

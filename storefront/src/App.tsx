@@ -6,6 +6,7 @@ import MiniCart from "./components/mini-cart";
 import Dialog from "./dialog/dialog";
 import { PopupMessage } from "./dialog/popup";
 import ResetPassword from "./routes/ResetPassword";
+import ActivateEmailPage from "./routes/ActivateEmail";
 
 
 const Home = lazy(() => import('./routes/Home'));
@@ -22,6 +23,7 @@ const Layout = () => (
     <Dialog name="login" />
     <Dialog name="forgot_password" />
     <Dialog name="change_password" />
+    <Dialog name="change_email" />
     <PopupMessage />
   </div>
 )
@@ -35,6 +37,7 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="catalogue" element={<Catalog />} />
               <Route path="reset-password/:uuid/:token" element={<ResetPassword/>} />
+              <Route path="activate-email/:uuid/:token" element={<ActivateEmailPage />} />
             </Route>
           </Routes>
         </Suspense>

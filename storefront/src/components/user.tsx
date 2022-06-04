@@ -51,7 +51,7 @@ const SignedInUser = () => {
       <Cart />
       <div className="p-5">
         <ActionButton text="Edit profile" Icon={FaUser} onClick={() => {}} />
-        <ActionButton text="Change email address" Icon={MdEmail} onClick={() => {}} />
+        <ActionButton text="Change email address" Icon={MdEmail} onClick={() => dispatch(showDialog('change_email'))} />
         <ActionButton text="Change password" Icon={FaKey} onClick={() => dispatch(showDialog('change_password'))} />
       </div>
       <div className="bg-gray-50 p-4 ">

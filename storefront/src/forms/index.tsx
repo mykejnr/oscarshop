@@ -1,5 +1,5 @@
 import Form, { TFormFields } from './base'
-import { requestChangePassword, requestLogin, requestPasswordReset, requestSignup } from '../utils/user'
+import { requestChangeEmail, requestChangePassword, requestLogin, requestPasswordReset, requestSignup } from '../utils/user'
 import { useDispatch } from 'react-redux'
 import { fetchBasket, newMessage, showDialog, showPopup } from '../actions'
 import { logout } from '../reducers/user_reducer'
@@ -131,6 +131,33 @@ export const ChangePasswordForm = () => {
     <Form<IChangePasswordData>
       fields={fields}
       asyncSubmit={requestChangePassword}
+      afterSubmitOk={afterSubmit}
+    />
+  )
+}
+
+
+export const ChangeEmailForm = () => {
+  const dispatch = useDispatch()
+
+  const fields: TFormFields<IChangeEmailData> = {
+    password: {type: 'password', required: true},
+    new_email: {type: 'email', required: true},
+  }
+
+  const afterSubmit = (responseData: TOkResponse | void) => {
+    dispatch(showDialog('nodialog'))
+    responseData &&
+    dispatch(showPopup({
+      title: 'Confirm Email Change',
+      message: responseData.message
+    }))
+  }
+
+  return (
+    <Form<IChangeEmailData>
+      fields={fields}
+      asyncSubmit={requestChangeEmail}
       afterSubmitOk={afterSubmit}
     />
   )

@@ -10,7 +10,7 @@ export const PopupMessage = () => {
   let title = "Message"
   let message = ""
 
-  if (popup) {
+  if (popup !== 'nopopup') {
     show = true
     title = popup.title || title
     message = popup.message
@@ -27,7 +27,7 @@ export const PopupMessage = () => {
             <div className='border-b py-3 px-5 text-accent-500'>{title}</div>
             <div className=' py-3 px-5'>
               <div data-testid="popup-msg" className="pb-8">{message}</div>
-              <button type="button" className="button block ml-auto w-20" onClick={() => dispatch(showPopup())}>
+              <button type="button" className="button block ml-auto w-20" onClick={() => dispatch(showPopup('nopopup'))}>
                 Ok
               </button>
             </div>

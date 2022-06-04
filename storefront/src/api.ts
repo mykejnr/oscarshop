@@ -23,7 +23,9 @@ const API = {
     login: '/api/user/login/',
     resetPassword: '/api/user/reset_password/',
     confirmReset: '/api/user/confirm_reset/',
-    changePassword: '/api/user/change_password/'
+    changePassword: '/api/user/change_password/',
+    changeEmail: '/api/user/change_email/',
+    activateEmail: '/api/user/activate_email/'
 }
 
 

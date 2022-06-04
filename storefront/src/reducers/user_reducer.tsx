@@ -27,6 +27,13 @@ export const userSlice = createSlice({
     login(state, action: PayloadAction<ILoginReturn>) {
       setUser(state, action)
     },
+    changeEmail(state, action: PayloadAction<string>) {
+      if (state.profile) {
+        state.profile.email = action.payload
+      } else {
+        return state
+      }
+    },
     logout(state) {
       state.auth = false
       state.profile = undefined
@@ -46,5 +53,5 @@ export const userSlice = createSlice({
 })
 
 
-export const { signup, login, logout } = userSlice.actions
+export const { signup, login, logout, changeEmail } = userSlice.actions
 export const userReducer = userSlice.reducer
