@@ -2,7 +2,7 @@
 
 from django.db import migrations, models
 import django.utils.timezone
-import userapi.models
+import apps.userapi.models
 
 
 class Migration(migrations.Migration):
@@ -34,7 +34,7 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
             managers=[
-                ('objects', userapi.models.UserManager()),
+                ('objects', apps.userapi.models.UserManager()),
             ],
         ),
     ]

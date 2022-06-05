@@ -8,7 +8,7 @@ from django.core.exceptions import ValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from userapi.token import ChangeEmailTokenGenerator
+from apps.userapi.token import ChangeEmailTokenGenerator
 
 User = get_user_model()
 

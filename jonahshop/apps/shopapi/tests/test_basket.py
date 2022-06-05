@@ -1,5 +1,3 @@
-from pprint import pprint
-
 from oscar.core.loading import get_model
 from oscar.apps.basket.models import Basket as OscarBasket, Line as OscarLine
 from oscar.apps.catalogue.models import Product as OscarProduct
@@ -7,7 +5,7 @@ from oscar.apps.catalogue.models import Product as OscarProduct
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from shopapi.views import BasketViewSet
+from apps.shopapi.views import BasketViewSet
 
 Basket: OscarBasket = get_model('basket', 'Basket')
 Line: OscarLine = get_model('basket', 'Line')

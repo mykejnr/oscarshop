@@ -1,7 +1,7 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from django.test import TestCase
 
-from userapi import tasks # Module with our thing to test
+from apps.userapi import tasks # Module with our thing to test
 # from app import decorators  # Module with the decorator we need to replace
 import imp  # Library to help us reload our UUT module
 
@@ -27,8 +27,8 @@ class SendResetEmail(TestCase):
         base_url = 'http://test.com'
         email = 'mykejnr4@gmail.com'
 
-        with patch('userapi.tasks.send_mail') as mail_mock, \
-            patch('userapi.tasks.render_to_string') as render_mock:
+        with patch('apps.userapi.tasks.send_mail') as mail_mock, \
+            patch('apps.userapi.tasks.render_to_string') as render_mock:
             render_mock.return_value = email_string
             tasks.send_reset_email(
                 email, uuid, token, base_url)
@@ -72,8 +72,8 @@ class SendChangeEmailTestCase(TestCase):
         base_url = 'http://test.com'
         email = 'mykejnr4@gmail.com'
 
-        with patch('userapi.tasks.send_mail') as mail_mock, \
-            patch('userapi.tasks.render_to_string') as render_mock:
+        with patch('apps.userapi.tasks.send_mail') as mail_mock, \
+            patch('apps.userapi.tasks.render_to_string') as render_mock:
             render_mock.return_value = email_string
             tasks.send_change_email_message(
                 email, uuid, token, base_url

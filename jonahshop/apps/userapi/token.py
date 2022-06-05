@@ -1,4 +1,4 @@
-from core.token import TokenGenerator
+from apps.core.token import TokenGenerator
 
 
 class ChangeEmailTokenGenerator(TokenGenerator):

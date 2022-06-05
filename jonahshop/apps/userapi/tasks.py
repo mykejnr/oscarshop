@@ -2,7 +2,7 @@ from unicodedata import name
 from celery import shared_task
 from django.template.loader import render_to_string
 
-from core.email import send_mail
+from apps.core.email import send_mail
 
 
 @shared_task(name='userapi.send_reset_email')

@@ -9,8 +9,8 @@ from django.contrib.auth.tokens import default_token_generator
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from userapi import views
-from userapi.token import ChangeEmailTokenGenerator
+from apps.userapi import views
+from apps.userapi.token import ChangeEmailTokenGenerator
 
 User = get_user_model()
 
@@ -149,8 +149,8 @@ class ResetPasswordTestCase(APITestCase):
         token = '123488293003972003949920'
         user = User.objects.create_user(email=data['email'], password=data['password'])
 
-        with patch("userapi.views.send_reset_email.delay") as email_mock, \
-            patch("userapi.views.urlsafe_base64_encode") as encode_mock, \
+        with patch("apps.userapi.views.send_reset_email.delay") as email_mock, \
+            patch("apps.userapi.views.urlsafe_base64_encode") as encode_mock, \
             patch.object(views.default_token_generator, 'make_token') as token_mock:
 
             encode_mock.return_value = uid
@@ -166,7 +166,7 @@ class ResetPasswordTestCase(APITestCase):
             res.wsgi_request.build_absolute_uri('/reset-password')
         )
 
-    @patch("userapi.views.send_reset_email")
+    @patch("apps.userapi.views.send_reset_email")
     def test_return_404_email_dosent_exit(self, mock_meth):
         data = {'email': 'nonExistEmail@mike.com'}
         response = self.client.post(reverse('reset_password'), data)
@@ -175,7 +175,7 @@ class ResetPasswordTestCase(APITestCase):
             response.status_code, status.HTTP_404_NOT_FOUND
         )
 
-    @patch("userapi.views.send_reset_email")
+    @patch("apps.userapi.views.send_reset_email")
     def test_return_400_wrong_post_data(self, mock_meth):
         data = {'unknownkey': 'mykejnr4@gmail.com'}
         response = self.client.post(reverse('reset_password'), data)
@@ -196,8 +196,8 @@ class ConfirmResetTestCase(APITestCase):
         uuid = urlsafe_base64_encode(force_bytes(data['email']))
         token = default_token_generator.make_token(user)
 
-        with patch("userapi.views.send_reset_email"), \
-            patch("userapi.views.urlsafe_base64_encode") as encode_mock, \
+        with patch("apps.userapi.views.send_reset_email"), \
+            patch("apps.userapi.views.urlsafe_base64_encode") as encode_mock, \
             patch.object(views.default_token_generator, 'make_token') as token_mock:
             # We need to use a real uuid and token so that it can
             # verified later
@@ -244,7 +244,7 @@ class ConfirmResetTestCase(APITestCase):
             'token': token,
         }
 
-        with patch("userapi.views.send_reset_email"), \
+        with patch("apps.userapi.views.send_reset_email"), \
             patch.object(views.default_token_generator, 'make_token') as token_mock:
             token_mock.return_value = token
 
@@ -268,8 +268,8 @@ class ConfirmResetTestCase(APITestCase):
             'token': 'SomewRonGToken',
         }
 
-        with patch("userapi.views.send_reset_email"), \
-            patch("userapi.views.urlsafe_base64_encode") as encode_mock:
+        with patch("apps.userapi.views.send_reset_email"), \
+            patch("apps.userapi.views.urlsafe_base64_encode") as encode_mock:
             encode_mock.return_value = uuid
 
         response = self.client.post(reverse('confirm_reset'), reset_data)
@@ -466,8 +466,8 @@ class ChangeEmailTestCase(APITestCase):
             'new_email': 'newemail@mail.com'
         }
 
-        with patch("userapi.views.send_change_email_message.delay") as email_mock, \
-            patch("userapi.views.urlsafe_base64_encode") as encode_mock, \
+        with patch("apps.userapi.views.send_change_email_message.delay") as email_mock, \
+            patch("apps.userapi.views.urlsafe_base64_encode") as encode_mock, \
             patch.object(views.ChangeEmailTokenGenerator, 'make_token') as token_mock:
 
             encode_mock.return_value = uid
@@ -479,10 +479,10 @@ class ChangeEmailTestCase(APITestCase):
 
         email_mock.assert_called_with(
             change_data['new_email'], uid, token,
-            res.wsgi_request.build_absolute_uri('/change-email')
+            res.wsgi_request.build_absolute_uri('/activate-email')
         )
 
-    @patch("userapi.views.send_reset_email")
+    @patch("apps.userapi.views.send_reset_email")
     def test_return_400_email_already_exit(self, mock_meth):
         data = {
             'email': 'toreset@testmail.com',
@@ -503,7 +503,7 @@ class ChangeEmailTestCase(APITestCase):
             response.status_code, status.HTTP_400_BAD_REQUEST
         )
 
-    @patch("userapi.views.send_reset_email")
+    @patch("apps.userapi.views.send_reset_email")
     def test_return_400_wrong_password(self, mock_meth):
         data = {
             'email': 'toreset@testmail.com',

@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view, authentication_classes, permissi
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from userapi.serializers import (
+from apps.userapi.serializers import (
     ActivateEmailSerializer,
     ChangeEmailSerializer,
     ChangePasswordSerializer,

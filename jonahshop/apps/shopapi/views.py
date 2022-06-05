@@ -5,7 +5,7 @@ from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from shopapi.serializers import (
+from apps.shopapi.serializers import (
     BasketSerializer,
     ProductSerializer,
     AddProductSerializer,

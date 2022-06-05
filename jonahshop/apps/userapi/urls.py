@@ -1,6 +1,6 @@
 from django.urls import path
 
-from userapi import views
+from apps.userapi import views
 
 urlpatterns = [
     path("", views.getuser, name='getuser'),

@@ -1,9 +1,7 @@
-from unittest.mock import patch
-
 from django.test import tag, TestCase
 from django.core import mail
 
-from ..email import send_mail
+from apps.core.email import send_mail
 # from ..email import send_mail, send_client_message
 # from ..models import ClientMessage
 

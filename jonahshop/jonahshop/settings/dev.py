@@ -42,9 +42,9 @@ EMAIL_FILE_PATH = BASE_DIR / 'fakeinbox'
 
 INSTALLED_APPS = [
     # our own apps
-    'core',
-    'userapi',
-    'shopapi',
+    'apps.core',
+    'apps.userapi',
+    'apps.shopapi',
 
     'django.contrib.admin',
     'django.contrib.auth',
