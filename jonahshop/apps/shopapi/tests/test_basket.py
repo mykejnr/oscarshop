@@ -1,17 +1,22 @@
+from pprint import pprint
 from oscar.core.loading import get_model
 from oscar.apps.basket.models import Basket as OscarBasket, Line as OscarLine
 from oscar.apps.catalogue.models import Product as OscarProduct
+from oscar.apps.order.utils import OrderNumberGenerator
+from oscar.apps.order.models import Order
 
 from rest_framework.test import APITestCase
 from rest_framework import status
 
 from apps.shopapi.views import BasketViewSet
+from apps.shipping.methods import NoDeliveryRequired
 
 Basket: OscarBasket = get_model('basket', 'Basket')
 Line: OscarLine = get_model('basket', 'Line')
 Product: OscarProduct = get_model('catalogue', 'Product')
 
-class BasketTestCase(APITestCase):
+
+class BasketTestMixin:
     fixtures = ['fixture_all.json' ]
 
     @property
@@ -30,10 +35,25 @@ class BasketTestCase(APITestCase):
     def get_basket_url(self):
         return self.basket_viewset.reverse_action('list')
 
+    @property
+    def checkout_url(self):
+        view = self.basket_viewset
+        return view.reverse_action(view.checkout.url_name)
+
     def retrieve_bakset_url(self, pk):
         return self.basket_viewset.reverse_action(
             'detail', args=[pk], request=None)
 
+    def get_add_product_data(self, product=None):
+        product = product or  Product.objects.first()
+
+        return {
+            'product_id': product.id,
+            'quantity': 1,
+        }
+
+
+class AddProductToBasketTestCase(BasketTestMixin, APITestCase):
     def test_add_product_to_basket(self):
         product = Product.objects.first()
 
@@ -109,6 +129,8 @@ class BasketTestCase(APITestCase):
         self.assertFalse(data['is_line_created'])
         self.assertEqual(data['line']['quantity'], 2)
 
+
+class GetBasketTestCase(BasketTestMixin, APITestCase):
     def test_get_basket(self):
         """
         Test requsting for a basket and all of it lines
@@ -184,13 +206,53 @@ class BasketTestCase(APITestCase):
             status.HTTP_401_UNAUTHORIZED
         )
 
-    def get_add_product_data(self, product=None):
-        product = product or  Product.objects.first()
 
-        return {
-            'product_id': product.id,
-            'quantity': 1,
+class CheckoutTestCase(BasketTestMixin, APITestCase):
+    def test_create_order_on_checkout(self):
+        # add 2 product to basket
+        data1 = {'product_id': Product.objects.first().id, 'quantity': 1,}
+        data2 = {'product_id': Product.objects.last().id, 'quantity': 1,}
+        self.client.post(self.add_product_url, data=data1)
+        response = self.client.post(self.add_product_url, data=data2)
+        basket_id = response.json()['id']
+        basket = OscarBasket.objects.get(pk=basket_id)
+
+        data = {
+            'shipping_method': NoDeliveryRequired().code,
+            'guest_email': 'mykejnr4@gmail.com'
         }
+        response = self.client.post(self.checkout_url, data=data)
+
+        self.assertTrue(response.status_code, status.HTTP_200_OK)
+
+        res_data = response.json()
+        res_order_num = res_data['number']
+        gen_order_num = OrderNumberGenerator().order_number(basket)
+
+        self.assertEqual(res_order_num, str(gen_order_num))
+
+        order: Order = Order.objects.get(number=gen_order_num)
+        self.assertEqual(order.num_items, 2)
+
+    def test_return_errors_invalid_data(self):
+        # add 1 product to basket
+        data1 = {'product_id': Product.objects.first().id, 'quantity': 1,}
+        self.client.post(self.add_product_url, data=data1)
+        response = self.client.post(self.add_product_url, data=data1)
+
+        data = {
+            'shipping_method': NoDeliveryRequired().code,
+            # un-auth user, but not guest email, we expect an error msg
+        }
+        response = self.client.post(self.checkout_url, data=data)
+        res_data = response.json()
+
+        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        self.assertEqual(
+            res_data['guest_email'],
+            ['Guest email is required for anonymous checkouts.']
+        )
 
 
 def get_add_product_response_shape():

@@ -1,4 +1,4 @@
-from oscar.core.loading import get_model
+from oscar.core.loading import get_model, get_class
 from oscar.apps.basket.models import Basket as OscarBasket, Line as OscarLine
 
 from rest_framework import viewsets, status, mixins
@@ -9,13 +9,17 @@ from apps.shopapi.serializers import (
     BasketSerializer,
     ProductSerializer,
     AddProductSerializer,
-    LineSerializer
+    LineSerializer,
+    CheckoutSerializer,
+    OrderSerializer
 )
 # Create your views here.
 
 
 Product = get_model('catalogue', 'Product')
 Basket = get_model('basket', 'Basket')
+Order = get_model('order', 'Order')
+OrderPlacementMixin = get_class("checkout.mixins", "OrderPlacementMixin")
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -113,3 +117,22 @@ class BasketViewSet(
         data['line'] = line_ser.data
 
         return Response(data)
+
+    @action(detail=False, methods=['post'])
+    def checkout(self, request):
+        ctx = {'request': request}
+        cser = CheckoutSerializer(data=request.data, context=ctx)
+
+        if not cser.is_valid():
+            return Response(cser.errors)
+
+        oser = OrderSerializer(cser.save(), context=ctx)
+        return Response(oser.data)
+
+
+class OrderViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    viewsets.GenericViewSet):
+
+    queryset = Order.objects

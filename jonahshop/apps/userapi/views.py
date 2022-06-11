@@ -20,8 +20,8 @@ from apps.userapi.serializers import (
     UserSerializer
 )
 
-from userapi.tasks import send_reset_email, send_change_email_message
-from userapi.token import ChangeEmailTokenGenerator
+from apps.userapi.tasks import send_reset_email, send_change_email_message
+from apps.userapi.token import ChangeEmailTokenGenerator
 
 
 User = get_user_model()

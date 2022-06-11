@@ -1,11 +1,13 @@
-from oscar.core.loading import get_model
-from oscar.apps.partner.strategy import Selector
+from oscar.core.loading import get_model, get_class
 from oscar.core.thumbnails import get_thumbnailer
 
 from rest_framework import serializers
 
 from drf_spectacular.utils import extend_schema_field
 from drf_spectacular.types import OpenApiTypes
+
+
+Selector = get_class('partner.strategy', 'Selector')
 
 
 class ProductSerializer(serializers.HyperlinkedModelSerializer):

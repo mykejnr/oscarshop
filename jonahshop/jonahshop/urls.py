@@ -26,6 +26,7 @@ from apps.shopapi import views
 router = routers.DefaultRouter()
 router.register(r'products', views.ProductViewSet, 'product')
 router.register(r'basket', views.BasketViewSet, basename='basket')
+router.register(r'order', views.OrderViewSet, basename='order')
 
 urlpatterns = [
     # path('admin/', admin.site.urls),
@@ -35,7 +36,7 @@ urlpatterns = [
     # Nonetheless, it's often useful for debugging.
     # path('admin/', admin.site.urls),
 
-    path('api/user/', include('userapi.urls')),
+    path('api/user/', include('apps.userapi.urls')),
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
