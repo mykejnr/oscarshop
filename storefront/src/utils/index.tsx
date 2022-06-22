@@ -27,6 +27,9 @@ export const getCSRFcookie = () => {
  * @returns 
  */
 export const nameToLabel = (inputName: string): string => {
-  const capitalized = inputName.charAt(0).toUpperCase() + inputName.slice(1);
+	const names = inputName.split('.')
+	// use the last name. eg. 'first_name' in 'shipping.first_name'
+	const name = names[names.length - 1] // use the last name g
+  const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
   return capitalized.replace('_', " ")
 }

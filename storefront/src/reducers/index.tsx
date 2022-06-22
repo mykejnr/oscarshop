@@ -1,4 +1,4 @@
-import { CombinedState, combineReducers } from 'redux';
+import { combineReducers } from 'redux';
 import { createReducer, createSlice } from '@reduxjs/toolkit';
 import { CATALOGUE, DATA_RESET_STATE } from "../constants/action-types";
 import { getProducts } from "../actions";

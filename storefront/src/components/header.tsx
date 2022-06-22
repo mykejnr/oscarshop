@@ -35,7 +35,7 @@ type MiniButonProps = {
   Icon: IconType,
   onClick?: () => void,
   testid?: string,
-  title?: string
+  title?: string,
 }
 
 const MiniButton = ({Icon, onClick, testid, title}: MiniButonProps) => (
@@ -48,6 +48,7 @@ const MiniButton = ({Icon, onClick, testid, title}: MiniButonProps) => (
 export const MiniButtons = () => {
   const dispatch = useDispatch()
   const uiState = useSelector((state:IRootState) => state.ui)
+  const userState = useSelector((state:IRootState) => state.user)
 
   useEffect(() => {
     dispatch(getUser())
@@ -58,7 +59,13 @@ export const MiniButtons = () => {
     <>
       <div className="actions flex justify-between items-center">
         <MiniButton title="Search" Icon={FaSearch} />
-        <MiniButton title="Account" testid="show-user" Icon={FaUser} onClick={() => dispatch(toggleMiniUser())} />
+        <div className="relative">
+          <MiniButton title="Account" testid="show-user" Icon={FaUser} onClick={() => dispatch(toggleMiniUser())} />
+          {
+            userState.auth &&
+            <div className="w-[6px] h-[6px] bg-green-500 absolute bottom-[5px] right-[30%] rounded-full"></div>
+          }
+        </div>
         <MiniButton title="Cart" Icon={FaShoppingBag} onClick={() => dispatch(toggleMiniCart())} />
       </div>
       <CSSTransition in={uiState.miniUserVisible} timeout={200} classNames="appear" unmountOnExit>

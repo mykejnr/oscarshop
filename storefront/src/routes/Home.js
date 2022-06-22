@@ -11,6 +11,9 @@ function Home() {
             <p>
                 <Link to={"/reset-password"}>This is the link to ResetPassword</Link>
             </p>
+            <p>
+                <Link to={"/checkout"}>This is the link to Checkout page</Link>
+            </p>
         </div>
     )
 }

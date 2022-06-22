@@ -21,26 +21,27 @@ export const userSlice = createSlice({
   name: USER,
   initialState,
   reducers: {
-    signup(state, action: PayloadAction<ISignupReturn>) {
+    signup(state = initialState, action: PayloadAction<ISignupReturn>) {
       setUser(state, action)
     },
-    login(state, action: PayloadAction<ILoginReturn>) {
+    login(state = initialState, action: PayloadAction<ILoginReturn>) {
       setUser(state, action)
     },
-    changeEmail(state, action: PayloadAction<string>) {
+    changeEmail(state = initialState, action: PayloadAction<string>) {
       if (state.profile) {
         state.profile.email = action.payload
       } else {
         return state
       }
     },
-    logout(state) {
+    // logout(state: WritableDraft<IUser> | undefined) {
+    logout(state = initialState) {
       state.auth = false
       state.profile = undefined
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(getUser.fulfilled, (state, action) => {
+    builder.addCase(getUser.fulfilled, (state = initialState, action) => {
         if (action.payload) {
             state.auth = true
             state.profile = action.payload
