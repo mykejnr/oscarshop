@@ -8,7 +8,7 @@ import { fetchBasket, resetState } from '../../actions';
 import store from "../../store/index";
 
 import { getApi } from '../../api';
-import * as user_utils from '../../utils/user'
+import * as user_utils from '../../utils/requests/user'
 import * as http_utils from '../../utils/http'
 import { ChangePasswordForm } from '../../forms';
 import { login } from '../../reducers/user_reducer';

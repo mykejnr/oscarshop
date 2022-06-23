@@ -141,12 +141,29 @@ interface IActivateEmailData extends Record<string, string> {
     token: string,
 }
 
-type TFormDataResponse<TFormData> = {
-    ok: boolean,
-    errors?: Record<keyof TFormData, string[]>,
-    response_data?: Record<string, string>
-}
-
 type TOkResponse = Record<string, string>
 
 type TPopupMessage = IPopupMessage | 'nopopup'
+
+type TOrder = {
+    url: string,
+    number: string,
+    basket: string,
+    user: string,
+    currency: string,
+    total_incl_tax: number,
+    total_excl_tax: number,
+    shipping_incl_tax: number, 
+    shipping_excl_tax: number, 
+    shipping_method: string,
+    shipping_code: number,
+    status: string,
+    guest_email: string,
+    date_placed: string,
+}
+
+type TFormDataResponse<TFormData, TResponseData = Record<string, string>> = {
+    ok: boolean,
+    errors?: Record<keyof TFormData, string[]>,
+    response_data?: TResponseData
+}

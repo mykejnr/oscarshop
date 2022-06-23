@@ -11,7 +11,7 @@ import { resetState } from '../../actions';
 import store from "../../store/index";
 
 import { getApi } from '../../api';
-import * as user_utils from '../../utils/user'
+import * as user_utils from '../../utils/requests/user'
 import * as http_utils from '../../utils/http'
 import ActivateEmailPage from '../../routes/ActivateEmail';
 import * as activate_page from '../../routes/ActivateEmail';

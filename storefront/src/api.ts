@@ -18,6 +18,7 @@ const API = {
     basket: '/api/basket/',
     getBasket: '/api/basket/{param}/',
     basketAdd: '/api/basket/add_product/',
+    checkout: '/api/basket/checkout/',
     user: '/api/user/',
     signup: '/api/user/signup/',
     login: '/api/user/login/',

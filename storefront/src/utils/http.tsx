@@ -1,13 +1,13 @@
-import { Action } from 'redux';
+import { Dispatch } from 'redux';
 import { getCSRFcookie } from '.';
-import { newMessage } from '../actions';
+import { showPopup } from '../actions';
 
 
 type RequestArgs = {
     url: string,
     ignore_errors?: number[],
     data: Record<string, string> | null,
-    dispatch?: (action: Action) => {},
+    dispatch?: Dispatch,
     options?: RequestInit,
 }
 
@@ -36,20 +36,20 @@ export const makeRequest = (method: string) => async (props: RequestArgs) => {
         // argument is provided. Else we just return the response and assume
         // The caller will deal with it themselves
         if (!response.ok && ie && !ie.includes(response.status)) {
-            // chech if the json has a message attribute else
+            // check if the json has a message attribute else
             // we show a generic message
             const json = (await response.json()) || {}
-            const msg = json.message || "Request failed. Please try again later."
-            dispatch && dispatch(newMessage(msg))
+            const message = json.message || "Request failed. Please try again later."
+            dispatch && dispatch(showPopup({title: 'Server Error', message}))
         }
-        // return the close to other function can do
+        // return the cloned version so the caller can also do
         // response.json() again
         return responseClone
     } catch(e: any) {
         // deal with client side errors (like network connectivity) generically
         // Catch the error (client side erros) and show the error message
         // We still return a custom Response to have a uniform API
-        dispatch && dispatch(newMessage(e.message))
+        dispatch && dispatch(showPopup({title: 'Client Error', message: e.message}))
         const res = new Response(null, {status: 600})
         return new Promise<Response>(resolve => resolve(res))
     }

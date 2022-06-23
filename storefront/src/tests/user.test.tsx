@@ -10,10 +10,10 @@ import { getApi } from '../api';
 import { fakeBasket, fakeUser } from './fakes';
 import { act } from 'react-dom/test-utils';
 import { MiniButtons } from '../components/header';
-import { ForgotPasswordForm, LoginForm, SignupForm } from '../forms';
-import { requestSignup } from '../utils/user';
+import { ForgotPasswordForm, SignupForm } from '../forms';
+import { requestSignup } from '../utils/requests/user';
 import { nameToLabel } from '../utils';
-import * as user_utils from '../utils/user'
+import * as user_utils from '../utils/requests/user'
 import { signup } from '../reducers/user_reducer';
 
 

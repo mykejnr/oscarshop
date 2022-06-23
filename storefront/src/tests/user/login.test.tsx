@@ -10,9 +10,9 @@ import { getApi } from '../../api';
 import { fakeBasket, fakeUser } from '../fakes';
 import { act } from 'react-dom/test-utils';
 import { LoginForm } from '../../forms';
-import { requestLogin } from '../../utils/user';
+import { requestLogin } from '../../utils/requests/user';
 import { nameToLabel } from '../../utils';
-import * as user_utils from '../../utils/user'
+import * as user_utils from '../../utils/requests/user'
 import { login } from '../../reducers/user_reducer';
 
 

@@ -1,6 +1,6 @@
 import * as http_utils from '../utils/http'
 import * as utils from '../utils/'
-import { newMessage } from '../actions';
+import { newMessage, showPopup } from '../actions';
 import { Action } from 'redux';
 
 
@@ -92,7 +92,8 @@ test("Catch and dispatch fetch errors as messages", () => {
         data: null
     })
 
-    expect(dispatchMock).toHaveBeenCalledWith(newMessage(err.message))
+    expect(dispatchMock).toHaveBeenCalledWith(
+        showPopup({title: "Client Error", message: err.message}))
 })
 
 test("Handle unhandled http error codes", async () => {
@@ -116,5 +117,5 @@ test("Handle unhandled http error codes", async () => {
         data: null
     })
 
-    expect(dispatchMock).toHaveBeenCalledWith(newMessage(message))
+    expect(dispatchMock).toHaveBeenCalledWith(showPopup({title: "Server Error", message}))
 })
