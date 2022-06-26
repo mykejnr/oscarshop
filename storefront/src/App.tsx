@@ -12,6 +12,7 @@ import ActivateEmailPage from "./routes/ActivateEmail";
 const Home = lazy(() => import('./routes/Home'));
 const Catalog = lazy(() => import('./routes/Catalog'));
 const Checkout = lazy(() => import("./routes/Checkout"));
+const Order = lazy(() => import("./routes/Order"));
 
 
 const Layout = () => (
@@ -38,6 +39,7 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="catalogue" element={<Catalog />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="order/:uuid/:token" element={<Order />} />
               <Route path="reset-password/:uuid/:token" element={<ResetPassword/>} />
               <Route path="activate-email/:uuid/:token" element={<ActivateEmailPage />} />
             </Route>

@@ -4,6 +4,7 @@ import { fetchBasket, toggleMiniCart } from "../actions";
 import { BsPlus, BsDash, BsArrowRight, BsTrash } from 'react-icons/bs';
 import { IconType } from "react-icons";
 import { Button } from "./button";
+import { useNavigate } from "react-router-dom";
 
 const CartHeader = () => {
   const dispatch = useDispatch();
@@ -23,20 +24,30 @@ const CartHeader = () => {
   )
 }
 
-const ltshadow = "shadow-[0px_35px_60px_15px_rgba(0,0,0,0.3)]"
-const footerStyles = `
-      absolute bg-white bottom-3 inset-x-5
-      flex justify-between items-center
-      border-box px-5 h-14 rounded-2xl ${ltshadow}`
-const CartFooter = ({cart_total}: {cart_total: number}) => (
-  <div className={footerStyles}>
-    <div className="grow">
-      <span className="text-xs align-baseline">GH&#8373;</span>
-      <span className="font-semibold align-top text-lg">{cart_total}</span>
+const CartFooter = ({cart_total}: {cart_total: number}) => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const ltshadow = "shadow-[0px_35px_60px_15px_rgba(0,0,0,0.3)]"
+  const footerStyles = `
+        absolute bg-white bottom-3 inset-x-5
+        flex justify-between items-center
+        border-box px-5 h-14 rounded-2xl ${ltshadow}`
+
+  const gotoCheckout = () => {
+    navigate('/checkout')
+    dispatch(toggleMiniCart()) // close this mini cart
+  }
+
+  return (
+    <div className={footerStyles}>
+      <div className="grow">
+        <span className="text-xs align-baseline">GH&#8373;</span>
+        <span className="font-semibold align-top text-lg">{cart_total}</span>
+      </div>
+      <Button text="Checkout" onClick={gotoCheckout}/>
     </div>
-    <Button text="Checkout"/>
-  </div>
-)
+  )
+}
 
 
 const QuantityButton = ({Icon}: {Icon: IconType}) => (

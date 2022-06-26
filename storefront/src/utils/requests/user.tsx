@@ -1,14 +1,10 @@
-import { Action } from 'redux';
+import { Dispatch } from 'redux';
 import { getApi } from "../../api";
 import { post } from "../../utils/http";
 import { changeEmail, login, signup } from '../../reducers/user_reducer';
 
 
-// LT = "Local Type" - incase redux make theirs public
-// in the future
-export type LTDispatch = (action: Action) => {}
-
-export const requestSignup = async (data: ISignupData, dispatch: LTDispatch): Promise<TFormDataResponse<ISignupData>> => {
+export const requestSignup = async (data: ISignupData, dispatch: Dispatch): Promise<TFormDataResponse<ISignupData>> => {
     const url = getApi('signup')
     const ignore_errors = [400]
 
@@ -32,7 +28,7 @@ export const requestSignup = async (data: ISignupData, dispatch: LTDispatch): Pr
 }
 
 
-export const requestLogin = async (data: ILoginFormData, dispatch: LTDispatch): Promise<TFormDataResponse<ILoginFormData>> =>{
+export const requestLogin = async (data: ILoginFormData, dispatch: Dispatch): Promise<TFormDataResponse<ILoginFormData>> =>{
     const url = getApi('login')
     const ignore_errors = [400, 401]
 
@@ -52,7 +48,7 @@ export const requestLogin = async (data: ILoginFormData, dispatch: LTDispatch): 
     return {ok: false}
 } 
 
-export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IForgotPasswordData>> =>{
+export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: Dispatch): Promise<TFormDataResponse<IForgotPasswordData>> =>{
     const url = getApi('resetPassword')
     const ignore_errors = [400, 404]
 
@@ -70,7 +66,7 @@ export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: 
     return {ok: false}
 }
 
-export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IResetPasswordData>> => {
+export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: Dispatch): Promise<TFormDataResponse<IResetPasswordData>> => {
     const url = getApi('confirmReset')
     const ignore_errors = [ 400 ]
 
@@ -85,7 +81,7 @@ export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: L
 }
 
 
-export const requestChangePassword = async (data: IChangePasswordData, dispatch: LTDispatch): Promise<TFormDataResponse<IChangePasswordData>> => {
+export const requestChangePassword = async (data: IChangePasswordData, dispatch: Dispatch): Promise<TFormDataResponse<IChangePasswordData>> => {
     const url = getApi('changePassword')
     const ignore_errors = [ 400 ]
 
@@ -100,7 +96,7 @@ export const requestChangePassword = async (data: IChangePasswordData, dispatch:
 }
 
 
-export const requestChangeEmail = async (data: IChangeEmailData, dispatch: LTDispatch): Promise<TFormDataResponse<IChangeEmailData>> => {
+export const requestChangeEmail = async (data: IChangeEmailData, dispatch: Dispatch): Promise<TFormDataResponse<IChangeEmailData>> => {
     const url = getApi('changeEmail')
     const ignore_errors = [ 400 ]
 
@@ -117,7 +113,7 @@ export const requestChangeEmail = async (data: IChangeEmailData, dispatch: LTDis
 }
 
 
-export const requestActivateEmail = async (data: IActivateEmailData, dispatch: LTDispatch): Promise<TFormDataResponse<IActivateEmailData>> => {
+export const requestActivateEmail = async (data: IActivateEmailData, dispatch: Dispatch): Promise<TFormDataResponse<IActivateEmailData>> => {
     const url = getApi('activateEmail')
     const ignore_errors = [ 400 ]
 

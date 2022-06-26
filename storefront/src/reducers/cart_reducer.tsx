@@ -1,14 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { addToCart, fetchBasket } from "../actions";
 import { CART } from '../constants/action-types';
+import { WritableDraft } from 'immer/dist/internal';
 
 
 // Shape of the reponse data from requesting for a
 // basket (cart) from the api
-const initialState = {
-  url: undefined,
-  id: undefined,
-  status: undefined,
+const initialState: IBasket = {
+  url: '',
+  id: 0,
+  status: 'EMPTY',
   total_price: 0,
   total_quantity: 0,
   lines: [] // A list of objects
@@ -20,9 +21,9 @@ const initialState = {
  * Helper function: We move logic of adding data
  * to the cart to this function for clarity
  */
-const _updateCart = (state, action) => {
-  const basket = action.payload
-  if (state.id === undefined) {
+const _updateCart = (state: WritableDraft<IBasket>, payload: IAddToBasketReturn) => {
+  const basket = payload
+  if (!state.id) {
     // there is nothing in the basket
     state.url = basket.url
     state.id = basket.id
@@ -56,8 +57,8 @@ export const cartSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
-    builder.addCase(addToCart.fulfilled, (state, action) => {
-      _updateCart(state, action)
+    builder.addCase(addToCart.fulfilled, (state, { payload }) => {
+      _updateCart(state, payload)
     })
     .addCase(fetchBasket.fulfilled, (state, action) => {
       return action.payload // replace state with new basket

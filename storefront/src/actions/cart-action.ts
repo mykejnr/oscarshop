@@ -4,7 +4,7 @@ import { getApi } from "../api";
 import { getCSRFcookie } from "../utils";
 
 
-export const addToCart = createAsyncThunk(CART_ADD_ITEM, (product: IProduct) => {
+export const addToCart = createAsyncThunk<IAddToBasketReturn, IProduct>(CART_ADD_ITEM, (product: IProduct) => {
     const url = getApi("basketAdd");
     const data: IBasketAddProducOptions = {
         product_id: product.id,

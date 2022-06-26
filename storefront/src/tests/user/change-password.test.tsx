@@ -168,6 +168,6 @@ test("Should clear cart from store after change - Integration", async () => {
 
     // expect store cart to be cleared
     const B: IBasket = store.getState().cart
-    expect(B.url).toStrictEqual(undefined)
+    expect(B.url).toStrictEqual('')
     expect(B.lines).toStrictEqual([])
 })

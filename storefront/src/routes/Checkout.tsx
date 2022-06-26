@@ -1,11 +1,41 @@
 import { useState } from "react"
-import { useForm, UseFormReturn } from "react-hook-form"
-import { useSelector } from "react-redux"
+import { SubmitHandler, useForm } from "react-hook-form"
+import { useDispatch, useSelector } from "react-redux"
 import { Field, RadioField, TSelectOptions } from "../forms/base"
 import { formatPrice } from "../utils"
 import { MdLocationCity, MdLocalShipping, MdAttachMoney, MdChecklist } from 'react-icons/md';
-import { IconType } from "react-icons"
 import { countries } from 'countries-list'
+import { submitForm } from "../utils/requests"
+import { showPopup } from "../actions"
+import { useNavigate } from "react-router-dom"
+import { clearCart } from "../reducers/cart_reducer"
+
+
+/**
+ * Receives an name of a form section and returns a tuple of  Section element
+ * the name of preview section and name of next section
+ * @param section name of form section of type TFormSection
+ * @returns [Section element, name of prev section, name of next section]
+ */
+const getSection = (section: TFormSection): [TSectionElement, TFormSection, TFormSection] => {
+    switch(section) {
+      case 'ship_address': return [Shipping, 'nosection', 'ship_method']
+      case 'ship_method': return [ShippingMethod, 'ship_address', 'pay_method']
+      case 'pay_method': return [PaymentMethod, 'ship_method', 'review']
+      default: return [Review, 'pay_method', 'nosection']
+    }
+}
+
+
+const getCheckoutMessage = (order: TOrder) => (
+  `<div>
+    <div>
+      An email has been sent to ${order.guest_email}. The email contains a link
+      to check the status of your order.
+    </div>
+    <div>Order Number: ${order.number}</div>
+  </div>`
+)
 
 
 const Navigator = ({label, current, Icon}: TNavigatorProps) => {
@@ -210,29 +240,67 @@ const BasketSummary = () => {
 }
 
 
-/**
- * Receives an name of a form section and returns a tuple of  Section element
- * the name of preview section and name of next section
- * @param section name of form section of type TFormSection
- * @returns [Section element, name of prev section, name of next section]
- */
-const getSection = (section: TFormSection): [TSectionElement, TFormSection, TFormSection] => {
-    switch(section) {
-      case 'ship_address': return [Shipping, 'nosection', 'ship_method']
-      case 'ship_method': return [ShippingMethod, 'ship_address', 'pay_method']
-      case 'pay_method': return [PaymentMethod, 'ship_method', 'review']
-      default: return [Review, 'pay_method', 'nosection']
-    }
+const NavButtons = (props: TNavButtonProps) => {
+  const { section, onNext, onPrev } = props
+  const [, prevSection, nextSection]= getSection(section)
+
+  return (
+    <div className="flex justify-between mt-10">
+      {
+        prevSection === 'nosection' ?
+        <div></div> :
+        <button type="button" onClick={() => onPrev()} className="button w-28">Back</button>
+      }
+      {
+        nextSection === 'nosection' ?
+        <div></div> :
+        <button type="button" data-testid='chonext' onClick={() => onNext()} className="button w-28">Next</button>
+      }
+      {
+        section === 'review' &&
+        <button type="submit" data-testid="chosubmit">Submit</button>
+      }
+    </div>
+  )
 }
 
 
 const Checkout = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
   const useFormReturn = useForm<ICheckoutFormData>({})
   const [ section, setSection ] = useState<TFormSection>('ship_address')
   const [CurrentSection, prevSection, nextSection]= getSection(section)
 
+  const { handleSubmit } = useFormReturn
+
   const next = () => setSection(nextSection)
   const back = () => setSection(prevSection)
+
+  const ignore_errors = [400]
+
+  const onSubmit: SubmitHandler<ICheckoutFormData> = async (data) => {
+    const res = await submitForm<ICheckoutFormData, TOrder>({
+        data, dispatch, ignore_errors, url_name: 'checkout'
+    })
+    if (res.ok) {
+      dispatch(clearCart()) // Reset cart
+      if (res.response_data) {
+        const { anonnymous } = res.response_data
+        anonnymous &&  navigate(`/order/${anonnymous.uuid}/${anonnymous.token}`)
+        dispatch(showPopup({
+          title: 'Order Placed',
+          type: 'html',
+          message: getCheckoutMessage(res.response_data)
+        }))
+      }
+    }
+    // if (res.ok) {
+    //   afterSubmitOk && afterSubmitOk(res.response_data)
+    // } else if (res.errors) {
+    //   setServerErrors(res.errors)
+    // }
+  }
 
   return (
     <div>
@@ -246,54 +314,16 @@ const Checkout = () => {
           <div className="text-accent-400 font-semibold border-b relative my-10 border-accent-400">
             <span className="absolute -top-4 block bg-white pr-3">{CurrentSection.label}</span>
           </div>
-          <form className="red">
+          <form onSubmit={handleSubmit(onSubmit)}>
             <CurrentSection {...useFormReturn} />
+            <NavButtons section={section} onPrev={back} onNext={next} />
           </form>
-          <div className="flex justify-between mt-10">
-            {prevSection === 'nosection' ? <div></div> :  <button onClick={back} className="button w-28">Back</button>}
-            {nextSection === 'nosection' ? <div></div> : <button onClick={next} className="button w-28">Next</button>}
-          </div>
         </div>
         <BasketSummary />
       </div>
       </div>
     </div>
   )
-}
-
-
-type TNavigatorProps = {
-  label: string,
-  current?: boolean,
-  Icon: IconType
-}
-
-type TFormSection = 'ship_address' | 'ship_method' | 'pay_method' | 'review' | 'nosection'
-
-type TFormSectionProps =  UseFormReturn<ICheckoutFormData>
-
-type TSectionElement = {
-  (props: TFormSectionProps): JSX.Element,
-  label: string
-}
-
-interface IShippingAddress extends Record<string, string> {
-  first_name: string,
-  last_name: string,
-  state: string,
-  line4: string,
-  line1: string,
-  postcode: string,
-  phone_number: string,
-  country: string,
-  notes: string,
-}
-
-interface ICheckoutFormData extends Record<string, string | Record<string, string>>  {
-  guest_email: string,
-  shipping_method: string,
-  payment_method: string,
-  shipping_address: IShippingAddress
 }
 
 

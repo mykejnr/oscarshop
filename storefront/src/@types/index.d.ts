@@ -1,42 +1,14 @@
-
-interface IBasketAddProducOptions {
-    product_id: number,
-    quantity: number
-}
-
-interface IBasketLineProduct {
-    url: string,
-    id: number,
-    title: string,
-    price: number,
-    image: string 
-}
-
 interface IProduct extends IBasketLineProduct {
     rating: number,
     availability: boolean,
     is_parent: boolean,
 }
 
-interface IBasketLine {
-    id: number,
-    line_reference: string,
-    quantity: number,
-    product: IBasketLineProduct,
-}
-
-interface IBasket {
-    url: string,
-    id: number,
-    status: 'OPEN' | 'SAVED' | 'CLOSED',
-    total_price: number,
-    total_quantity: number,
-    lines: [IBasketLine]
-}
-
 interface IPopupMessage {
     title?: string,
     message: string,
+    type?: 'html' | 'raw'
+    level?: 'info' | 'warning' | 'error'
 }
 
 interface iUI {
@@ -144,23 +116,6 @@ interface IActivateEmailData extends Record<string, string> {
 type TOkResponse = Record<string, string>
 
 type TPopupMessage = IPopupMessage | 'nopopup'
-
-type TOrder = {
-    url: string,
-    number: string,
-    basket: string,
-    user: string,
-    currency: string,
-    total_incl_tax: number,
-    total_excl_tax: number,
-    shipping_incl_tax: number, 
-    shipping_excl_tax: number, 
-    shipping_method: string,
-    shipping_code: number,
-    status: string,
-    guest_email: string,
-    date_placed: string,
-}
 
 type TFormDataResponse<TFormData, TResponseData = Record<string, string>> = {
     ok: boolean,

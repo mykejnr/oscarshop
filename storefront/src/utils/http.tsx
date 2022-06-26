@@ -6,7 +6,7 @@ import { showPopup } from '../actions';
 type RequestArgs = {
     url: string,
     ignore_errors?: number[],
-    data: Record<string, string> | null,
+    data: Record<string, any> | null,
     dispatch?: Dispatch,
     options?: RequestInit,
 }

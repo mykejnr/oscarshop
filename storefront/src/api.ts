@@ -30,7 +30,7 @@ const API = {
 }
 
 
-type APIName = keyof typeof API
+export type APIName = keyof typeof API
 
 
 /**
@@ -42,4 +42,19 @@ type APIName = keyof typeof API
  */
 export const getApi = (name: APIName, param?: string): string => {
     return API[name].replace('{param}', param || "")
+}
+
+
+const routes = {
+    home: '/',
+    checkout: '/checkout',
+    order: '/order/:token/:uuid'
+}
+
+export type TRouteName = keyof typeof routes
+
+
+export const getRoute = (name: TRouteName, ...params: string[]): string => {
+    let route = routes[name]
+    return route
 }

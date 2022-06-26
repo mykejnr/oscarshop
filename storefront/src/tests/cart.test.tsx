@@ -1,7 +1,9 @@
-import {render, fireEvent, waitFor, screen} from '@testing-library/react'
+import {render, fireEvent, screen} from '@testing-library/react'
 import { Provider } from 'react-redux';
 import {setupServer} from 'msw/node'
 import { rest } from 'msw';
+import { Router, Routes, Route } from 'react-router-dom';
+import { createMemoryHistory } from 'history';
 
 import { resetState } from '../actions';
 import store from "../store/index";
@@ -25,7 +27,11 @@ afterAll(() => server.close())
 const renderCart = () => (
   render(
     <Provider store={store}>
-      <MiniCart />
+      <Router location="/" navigator={createMemoryHistory()}>
+        <Routes>
+          <Route path='/' element={<MiniCart />} />
+        </Routes>
+      </Router>
     </Provider>
   )
 )
@@ -39,11 +45,7 @@ test("Should get and render cart items on mount", async () => {
 })
 
 test("Should correctly toogle mini cart", () => {
-  render(
-    <Provider store={store}>
-      <MiniCart />
-    </Provider>
-  )
+  renderCart()
 
   // show mini cart
   fireEvent.click(screen.getByTestId("toogle-mini-cart"))
