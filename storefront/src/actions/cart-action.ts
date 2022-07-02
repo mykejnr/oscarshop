@@ -2,6 +2,8 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 import {CART_ADD_ITEM, CART_FETCH_BASKET } from '../constants/action-types'
 import { getApi } from "../api";
 import { getCSRFcookie } from "../utils";
+import { IAddToBasketReturn, IBasketAddProducOptions } from "../typedefs/basket";
+import { IProduct } from "../typedefs/product";
 
 
 export const addToCart = createAsyncThunk<IAddToBasketReturn, IProduct>(CART_ADD_ITEM, (product: IProduct) => {

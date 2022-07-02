@@ -3,7 +3,6 @@ import {USER_GET_USER } from '../constants/action-types'
 import { getApi } from "../api";
 import { get } from "../utils/http";
 
-
 export const getUser = createAsyncThunk(USER_GET_USER, async (arg, {dispatch}) => {
     const url = getApi("user")
 

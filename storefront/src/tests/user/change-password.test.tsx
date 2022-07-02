@@ -13,6 +13,7 @@ import * as http_utils from '../../utils/http'
 import { ChangePasswordForm } from '../../forms';
 import { login } from '../../reducers/user_reducer';
 import { fakeBasket } from '../fakes';
+import { IBasket } from '../../typedefs/basket';
 
 const server = setupServer()
 

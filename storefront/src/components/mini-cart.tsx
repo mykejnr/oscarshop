@@ -2,9 +2,11 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux"
 import { fetchBasket, toggleMiniCart } from "../actions";
 import { BsPlus, BsDash, BsArrowRight, BsTrash } from 'react-icons/bs';
-import { IconType } from "react-icons";
 import { Button } from "./button";
 import { useNavigate } from "react-router-dom";
+
+import type { IconType } from "react-icons";
+import type { IBasketLine } from "../typedefs/basket";
 
 const CartHeader = () => {
   const dispatch = useDispatch();
@@ -90,7 +92,7 @@ const CartItem = ({line}: {line: IBasketLine}) => (
 )
 
 
-const CartItemList = ({lines}: {lines: [IBasketLine]}) => (
+const CartItemList = ({lines}: {lines: IBasketLine[]}) => (
     <div
       className="absolute inset-x-0 inset-y-14 bg-none border-box px-3 rounded-tl-xl"
     >

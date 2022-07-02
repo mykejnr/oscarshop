@@ -1,3 +1,4 @@
+from time import sleep
 from oscar.core.loading import get_model, get_class
 from oscar.apps.basket.models import Basket as OscarBasket, Line as OscarLine
 
@@ -120,11 +121,12 @@ class BasketViewSet(
 
     @action(detail=False, methods=['post'])
     def checkout(self, request):
+        sleep(5)
         ctx = {'request': request}
         cser = CheckoutSerializer(data=request.data, context=ctx)
 
         if not cser.is_valid():
-            return Response(cser.errors)
+            return Response(cser.errors, status=status.HTTP_400_BAD_REQUEST)
 
         oser = OrderSerializer(cser.save(), context=ctx)
         return Response(oser.data)

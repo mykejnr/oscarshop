@@ -1,9 +1,3 @@
-interface IProduct extends IBasketLineProduct {
-    rating: number,
-    availability: boolean,
-    is_parent: boolean,
-}
-
 interface IPopupMessage {
     title?: string,
     message: string,
@@ -116,9 +110,3 @@ interface IActivateEmailData extends Record<string, string> {
 type TOkResponse = Record<string, string>
 
 type TPopupMessage = IPopupMessage | 'nopopup'
-
-type TFormDataResponse<TFormData, TResponseData = Record<string, string>> = {
-    ok: boolean,
-    errors?: Record<keyof TFormData, string[]>,
-    response_data?: TResponseData
-}

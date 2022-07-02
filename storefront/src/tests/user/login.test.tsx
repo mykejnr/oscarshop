@@ -14,6 +14,7 @@ import { requestLogin } from '../../utils/requests/user';
 import { nameToLabel } from '../../utils';
 import * as user_utils from '../../utils/requests/user'
 import { login } from '../../reducers/user_reducer';
+import { IBasket } from '../../typedefs/basket';
 
 
 const server = setupServer(
@@ -153,7 +154,6 @@ test("Should update store with user on success - Integration", async () => {
 });
 
 test("Should render errors on login failed - Integration", async () => {
-    const data = getSignupInit();
     const err_msg = 'Not a valid email address'
     const err_res = {
         email: [err_msg]

@@ -1,9 +1,9 @@
-interface IBasketAddProducOptions {
+export interface IBasketAddProducOptions {
     product_id: number,
     quantity: number
 }
 
-interface IBasketLineProduct {
+export interface IBasketLineProduct {
     url: string,
     id: number,
     title: string,
@@ -11,14 +11,14 @@ interface IBasketLineProduct {
     image: string 
 }
 
-interface IBasketLine {
+export interface IBasketLine {
     id: number,
     line_reference: string,
     quantity: number,
     product: IBasketLineProduct,
 }
 
-interface ISimpleBasket {
+export interface ISimpleBasket {
     url: string,
     id: number,
     status: 'EMPTY' | 'OPEN' | 'SAVED' | 'CLOSED',
@@ -26,11 +26,11 @@ interface ISimpleBasket {
     total_quantity: number,
 }
 
-interface IBasket extends ISimpleBasket {
+export interface IBasket extends ISimpleBasket {
     lines: IBasketLine[]
 }
 
-interface IAddToBasketReturn extends ISimpleBasket {
+export interface IAddToBasketReturn extends ISimpleBasket {
     is_line_created: boolean,
     line: IBasketLine
 }

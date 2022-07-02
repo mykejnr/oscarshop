@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { addToCart, fetchBasket } from "../actions";
 import { CART } from '../constants/action-types';
 import { WritableDraft } from 'immer/dist/internal';
+import { IBasket, IAddToBasketReturn } from '../typedefs/basket';
 
 
 // Shape of the reponse data from requesting for a

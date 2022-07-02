@@ -1,4 +1,5 @@
 import { Suspense, lazy } from "react";
+import { RecoilRoot } from "recoil";
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
 import Header from "./components/header";
 import Footer from "./components/footer";
@@ -31,6 +32,7 @@ const Layout = () => (
 )
 
 const App = () => (
+  <RecoilRoot>
   <div className="bg-white text-neutral-500">
     <Router>
         <Suspense fallback={<div>Loading...</div>}>
@@ -47,6 +49,7 @@ const App = () => (
         </Suspense>
     </Router>
   </div>
+  </RecoilRoot>
 );
 
 export default App;

@@ -1,12 +1,9 @@
 import { HTMLInputTypeAttribute, useState } from "react";
 import { Action, Dispatch } from 'redux';
-import { SubmitHandler, useForm, UseFormReturn , UnpackNestedValue, DeepPartial} from "react-hook-form";
+import { SubmitHandler, useForm, UseFormReturn , UnpackNestedValue, Path, DeepPartial} from "react-hook-form";
 import { useDispatch } from "react-redux";
 import { nameToLabel } from "../utils";
 import { Spinner } from "../utils/components";
-import { TFieldName } from "./base copy";
-import { TSubmitFormErrors } from "../typedefs/form";
-import { extractFieldErros } from "./utils";
 
 
 // See type definitions at the bottom of the page
@@ -39,18 +36,17 @@ const RawInput = <TFormData, >(props: TInputProps<TFormData>) => {
   const {
     register,
     name,
+    type,
     disabled,
     placeholder,
     required,
     cols, rows,
     options
   } = props;
-  const type: TInputType = props.type || 'text'
   const disAstyles = disabled ? 'bg-gray-100 text-gray-300' : ''
   const ph = placeholder ? placeholder : nameToLabel(props.name)
-
   const attrs = {
-      className: `block w-full max-w-full px-4 rounded outline-none ${disAstyles}`,
+      className: `block w-full px-4 rounded outline-none ${disAstyles}`,
       placeholder: ph, type, disabled, id: getid(name), ...register(name, {required})
   }
 
@@ -78,14 +74,9 @@ const RawInput = <TFormData, >(props: TInputProps<TFormData>) => {
 }
 
 
-/**
- * Render form errors of a given field
- * @param props of type TInputProps 
- * @returns JSX.Element
- */
-const FieldError = ({fieldErrors}: {fieldErrors?: string[]}) => {
+const FieldError = ({fieldErrors}: {fieldErrors: string[] | undefined}) => {
   return (
-    <div className="text-xs text-red-500 pb-2 min-h-[20px] leading-[1] mb-4">
+    <div className="text-xs text-red-500 pb-2 min-h-[20px] leading-[1]">
       {fieldErrors && 
         fieldErrors.map((err_msg, i) => (
         <div data-testid="field-error" className="bg-red-100" key={i}>{err_msg}</div>
@@ -99,7 +90,7 @@ const FieldError = ({fieldErrors}: {fieldErrors?: string[]}) => {
 /**
  * A Generic Components that renderes a form input of a given type.
  * The state of the inputs is manage by "react-hook-forms" library
- * @param props The folowing properties are espected
+ * @param props The folowing properties ere espected
  *  name, type, placeholder, required. In addition to these all properties
  * returned fron 'useForm' of 'react-hook-forms' are also reqired.
  *    const useFormData = useForm()
@@ -110,30 +101,30 @@ export const Input = <TFormData, >(props: TInputProps<TFormData>) => {
   return (
     <div className="w-full box-border">
       <RawInput {...props} />
-      <FieldError {...props} />
+      <FieldError fieldErrors={props.fieldErrors} />
     </div>
   )
 }
 
 
-export const Field = <TFormData, > (props: TFieldInputProps<TFormData>) => {
-  const { label, fieldErrors } = props
+export const Field = <TFormData, > (props: TFieldProps<TFormData>) => {
+  const { label } = props
   const displayLabel = label ? label : nameToLabel(props.name)
 
   return (
     <>
-    <div className="border border-gray-200 rounded relative">
+    <div className="border border-gray-200 rounded relative mb-4">
       <label htmlFor={getid(props.name)} className="absolute -top-3 left-3 bg-white font-semibold text-sm px-1 text-gray-400">{displayLabel}</label>
       <RawInput {...props} placeholder={' '} />
     </div>
-    <FieldError fieldErrors={fieldErrors} />
+    <FieldError fieldErrors={props.fieldErrors} />
     </>
   )
 }
 
 
-export const RadioField = <TFormData, >(props: TRadioInputProps<TFormData>) => {
-  const { register, name, required, options, fieldErrors } = props;
+export const RadioField = <TFormData, >(props: TRadioProps<TFormData>) => {
+  const { register, name, required, options } = props;
 
   const attrs = {
       type: 'radio',  ...register(name, {required})
@@ -141,7 +132,6 @@ export const RadioField = <TFormData, >(props: TRadioInputProps<TFormData>) => {
 
   return (
     <>
-      <FieldError fieldErrors={fieldErrors} />
       {
         options.map((option, index) => (
           <label
@@ -208,7 +198,7 @@ const ButtonSpinner = () => (
  */
 const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => {
   let { asyncSubmit, fields, afterSubmitOk, getFields, defaultValues } = props
-  const [serverErrors, setServerErrors] = useState<TSubmitFormErrors<TFormData> | undefined>(undefined)
+  const [serverErrors, setServerErrors] = useState<TAsyncSubmitErrors<TFormData>>({})
   const useFormReturn = useForm<TFormData>({defaultValues})
   const dispatch = useDispatch<Dispatch<Action>>()
   const {
@@ -228,8 +218,7 @@ const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => 
 
   const getInputProps = (f/*field name*/: TFieldName<TFormData>) => {
     let err: string | string[] | undefined
-    // err = (serverErrors && serverErrors[f]) || errors[f]?.message
-    err = (serverErrors && extractFieldErros(serverErrors, f)) || errors[f]?.message
+    err = serverErrors[f] || errors[f]?.message
 
     return {
       name: f,
@@ -277,6 +266,9 @@ const Form = <TFormData extends TFormDataBase>(props: TFormProps<TFormData>) => 
 // TYPES .............................................................................................
 export type TFormDataBase = { [key: string]: string }
 
+export type TFieldName<TFormData> = Path<TFormData>
+
+// export type TInputType = 'text' | "email" | "password" | "tel" | HTMLInputTypeAttribute;
 export type TInputType = HTMLInputTypeAttribute | "textarea";
 
 export type TSelectOptions = {
@@ -290,23 +282,21 @@ export type TRadioOption = {
   icon?: string,
 }
 
-export type TFormFieldProps = {
-  type?: TInputType,
-  placeholder?: string,
-  required?: boolean,
-  disabled?: boolean,
-}
-
 type TBaseInputProps<TFormData> = {
   name: TFieldName<TFormData>,
   fieldErrors?: string[],
-} & TFormFieldProps & UseFormReturn<TFormData>
+  required?: boolean,
+  disabled?: boolean,
+} & UseFormReturn<TFormData>
 
-export type TRadioInputProps<TFormData> = {
+export type TRadioProps<TFormData> = {
     options: TRadioOption[],
 } & TBaseInputProps<TFormData>
 
 export type TInputProps<TFormData> = {
+    type: TInputType
+    placeholder?: string,
+    disabled?: boolean,
     // for textarea
     cols?: number,
     rows?: number,
@@ -315,7 +305,7 @@ export type TInputProps<TFormData> = {
     options?: TSelectOptions,
 } & TBaseInputProps<TFormData>
 
-export type TFieldInputProps<TFormData> = {
+export type TFieldProps<TFormData> = {
   label?: string
 } & TInputProps<TFormData>
 
@@ -323,7 +313,7 @@ export type TGetInputProps<TFormData> = (field_name: TFieldName<TFormData>) => T
 
 export type TGetFieldsProps<TFormData> = {
   getInputProps: TGetInputProps<TFormData>
-  serverErrors?: TSubmitFormErrors<TFormData>
+  serverErrors: TAsyncSubmitErrors<TFormData>
   useFormReturn: UseFormReturn<TFormData>
 }
 
@@ -331,10 +321,19 @@ export type TGetFields<TFormData> = (props: TGetFieldsProps<TFormData>) => JSX.E
 
 export type TAsyncSubmit<TFormData> = (data: UnpackNestedValue<TFormData>, dispatch: Dispatch) => Promise<TAsyncSubmitResponse<TFormData>>
 
+export type TAsyncSubmitErrors<TFormData> = Partial<Record<keyof TFormData, string[]>>
+
 export type TAsyncSubmitResponse<TFormData> = {
   ok: boolean,
-  errors?: TSubmitFormErrors<TFormData>,
+  errors?: TAsyncSubmitErrors<TFormData>,
   response_data?: Record<string, string> | void
+}
+
+export type TFormFieldProps = {
+  type: TInputType,
+  placeholder?: string,
+  required?: boolean,
+  disabled?: boolean,
 }
 
 export type TFormFields<TFormData> = Record<TFieldName<TFormData>, TFormFieldProps>

@@ -1,4 +1,4 @@
-import {render, fireEvent, screen } from '@testing-library/react'
+import {render, fireEvent, screen, waitFor } from '@testing-library/react'
 import { act } from 'react-dom/test-utils';
 import { Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
@@ -16,6 +16,7 @@ import * as request_utils from '../utils/requests'
 import Checkout from '../routes/Checkout';
 import { createMemoryHistory } from 'history';
 import userEvent from '@testing-library/user-event';
+import { TOrder } from '../routes/Order';
 
 
 const server = setupServer()
@@ -203,36 +204,24 @@ test("Should clear basket from store after checkout - Integration", async () => 
     expect(cartSpy).toBeCalled()
 })
 
-// test("Should clear cart from store after change - Integration", async () => {
-//     server.use(
-//         rest.get(getApi('basket'), (req, res, ctx) => {
-//         return res(ctx.json(fakeBasket))
-//     })
 
-//     )
-//     jest.spyOn(user_utils, 'requestChangePassword').mockImplementation(
-//         (data, dispatch) => new Promise((rs, rj) => {
-//             rs({ok: true})
-//         })
-//     )
+test("Should render shipping address errors if checkout fails - Ingegration", async () => {
+    const err_msg = 'Error - Firstname is required'
+    jest.spyOn(request_utils, 'submitForm').mockImplementation(
+        ({data, dispatch}) => new Promise((rs, rj) => {
+            rs({
+                ok: false,
+                errors: {
+                    shipping_address: {first_name: [err_msg]}
+                }
+            })
+        })
+    )
+    const cartSpy = jest.spyOn(cart_reduder, 'clearCart')
 
-//     renderForm()
-//     // populate store cart
-//     await store.dispatch(fetchBasket())
+    renderCheckoutPage()
+    populateForm()
+    await act(() => fireEvent.click(screen.getByTestId('chosubmit')) as never)
 
-//     const inputOl = screen.getByPlaceholderText('Old password')
-//     const inputNw = screen.getByPlaceholderText('New password')
-//     const inputCp = screen.getByPlaceholderText('Confirm password')
-//     fireEvent.change(inputOl, {target: {value: '*******'}})
-//     fireEvent.change(inputNw, {target: {value: '######'}})
-//     fireEvent.change(inputCp, {target: {value: '######'}})
-
-
-//     const btnEl = screen.getByTestId('genform-submit')
-//     await act(() => fireEvent.click(btnEl) as never)
-
-//     // expect store cart to be cleared
-//     const B: IBasket = store.getState().cart
-//     expect(B.url).toStrictEqual(undefined)
-//     expect(B.lines).toStrictEqual([])
-// })
+    await waitFor(() => screen.findByText(err_msg))
+})

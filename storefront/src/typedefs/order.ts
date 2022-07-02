@@ -1,4 +1,4 @@
-type TOrder = {
+export type TOrder = {
     url: string,
     number: string,
     basket: string,
