@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     'drf_spectacular_sidecar',
 
     "corsheaders",
+    "channels",
 ]
 
 MIDDLEWARE = [
@@ -246,6 +247,10 @@ SPECTACULAR_SETTINGS = {
     # OTHER SETTINGS
 }
 
+# CELERY_IMPORTS = ['userapi.tasks']
+
+ASGI_APPLICATION = "jonahshop.asgi.application"
+
 if DEBUG:
     # React local dev server
     CORS_ORIGIN_WHITELIST = (
@@ -253,5 +258,3 @@ if DEBUG:
         "http://127.0.0.1:3000",
     )
     CORS_ALLOW_CREDENTIALS = True
-
-# CELERY_IMPORTS = ['userapi.tasks']

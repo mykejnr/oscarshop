@@ -51,3 +51,8 @@ export type TCheckoutState = {
   serverErrors?: TSubmitFormErrors<ICheckoutFormData>,
   section: TFormSection
 }
+
+export type TPaymentResponse = {
+  status: 'IDLE' | 'CONNECTING' | 'REQUESTING' | 'WAITING' | 'AUTHORIZED' | 'TIMEOUT',
+  message: string
+}

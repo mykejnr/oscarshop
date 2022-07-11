@@ -37,6 +37,8 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
 
     path('api/user/', include('apps.userapi.urls')),
+    path('api/shipping/', include('apps.shipping.urls')),
+    path('api/payment/', include('apps.payapi.urls')),
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]

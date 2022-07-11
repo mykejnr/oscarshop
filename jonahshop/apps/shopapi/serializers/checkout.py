@@ -1,17 +1,18 @@
-import pprint
-
 from django.conf import settings
 from django.utils.translation import gettext as _
 
 from oscar.core.loading import get_model, get_class
+from oscar.core import prices
 from oscar.apps.checkout.mixins import OrderPlacementMixin as OscarOrderPlacementMixin
 from oscar.apps.basket.abstract_models import AbstractBasket
 from oscar.apps.shipping.methods import Base as ShippingMethod
+from oscar.apps.payment.models import SourceType, Source
 
 from rest_framework import serializers
-from apps.shipping.methods import NoDeliveryRequired
 
+from apps.shipping.methods import NoDeliveryRequired
 from apps.shipping.repository import Repository
+from apps.payapi.paymethods import PaymentMethods
 
 
 Order = get_model('order', 'Order')
@@ -46,9 +47,10 @@ class BillingAddressSerializer(serializers.ModelSerializer):
 
 class CheckoutSerializer(serializers.Serializer, OrderPlacementMixin):
 
-    shipping_address = ShippingAddressSerializer(many=False, required=False)
+    shipping_address = ShippingAddressSerializer(many=False, required=True)
     guest_email = serializers.EmailField(allow_blank=True, required=False)
-    shipping_method = serializers.CharField(max_length=128, required=False) # code for shipping method
+    shipping_method = serializers.CharField(max_length=128, required=True) # code for shipping method
+    payment_method = serializers.CharField(max_length=128, required=True)
 
     _shipping_method: ShippingMethod = NoDeliveryRequired()
     repository = Repository()
@@ -67,6 +69,11 @@ class CheckoutSerializer(serializers.Serializer, OrderPlacementMixin):
             raise serializers.ValidationError(_('Shipping method is not applicable.'))
         return value
 
+    def validate_payment_method(self, value):
+        if not PaymentMethods().get(value):
+            raise serializers.ValidationError(_('Invalid payment method.'))
+        return value
+
     def validate(self, attrs):
         if not self.request.user.is_authenticated:
             if not attrs.get('guest_email', ''):
@@ -80,19 +87,28 @@ class CheckoutSerializer(serializers.Serializer, OrderPlacementMixin):
             raise serializers.ValidationError(message)
         return attrs
 
+    def handle_payment(self, order_number: int, total: prices.Price, **kwargs):
+        # Overriden method of OrderPlacementMixin
+        payment_method = self.validated_data.get('payment_method')
+        source_type, created = SourceType.objects.get_or_create(name=payment_method)
+        source = Source(source_type=source_type, amount_allocated=total.incl_tax)
+        self.add_payment_source(source)
+
     def create(self, validated_data):
         order_number = self.generate_order_number(self.basket)
         shipping_charge = self._shipping_method.calculate(self.basket) if self._shipping_method else None
-        total = OrderTotalCalculator().calculate(self.basket, shipping_charge)
+        total: prices.Price = OrderTotalCalculator().calculate(self.basket, shipping_charge)
 
         vd = validated_data
 
         sa = vd.get('shipping_address', None)
         shipping_address = ShippingAddress(**vd['shipping_address']) if sa else None
+        self.handle_payment(order_number, total)
 
+        # TODO add initial order status
         order = self.place_order(
             order_number=order_number,
-            user=self.request.user if self.request.user.is_authenticated else None,
+            user=self.request.user,
             basket=self.basket,
             shipping_address=shipping_address,
             shipping_method=self._shipping_method,

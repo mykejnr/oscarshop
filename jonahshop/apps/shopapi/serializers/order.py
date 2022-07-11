@@ -12,6 +12,7 @@ class OrderSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Order
         fields= [
+            'id',
             'url',
             'number',
             'basket',

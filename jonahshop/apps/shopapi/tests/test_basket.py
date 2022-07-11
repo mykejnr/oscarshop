@@ -1,4 +1,7 @@
-from pprint import pprint
+from unittest.mock import ANY, patch, MagicMock
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+
 from oscar.core.loading import get_model
 from oscar.apps.basket.models import Basket as OscarBasket, Line as OscarLine
 from oscar.apps.catalogue.models import Product as OscarProduct
@@ -10,6 +13,8 @@ from rest_framework import status
 
 from apps.shopapi.views import BasketViewSet
 from apps.shipping.methods import NoDeliveryRequired
+from apps.payapi.paymethods import PaymentMethods
+from apps.core.token import simple_token
 
 Basket: OscarBasket = get_model('basket', 'Basket')
 Line: OscarLine = get_model('basket', 'Line')
@@ -51,6 +56,24 @@ class BasketTestMixin:
             'product_id': product.id,
             'quantity': 1,
         }
+
+    def get_checkout_data(self, guest_email='mykejnr4@gmail.com'):
+        data = {
+            'payment_method': PaymentMethods().methods()[0].label,
+            'shipping_method': NoDeliveryRequired().code,
+            'guest_email': guest_email,
+            'shipping_address': {
+                'first_name': 'Michael',
+                'last_name': 'Mensah',
+                'line1': 'NT #9 Blk D, New Brosankro',
+                'state': 'Ahafo',
+                'country': 'GH',
+                'title': 'Mr',
+                'phone_number': '+233248352555',
+                'notes': 'Brosankro new town. Adjescent methodist church'
+            }
+        }
+        return data
 
 
 class AddProductToBasketTestCase(BasketTestMixin, APITestCase):
@@ -208,6 +231,16 @@ class GetBasketTestCase(BasketTestMixin, APITestCase):
 
 
 class CheckoutTestCase(BasketTestMixin, APITestCase):
+
+    def setUp(self) -> None:
+        self.p = patch('apps.shopapi.views.send_order_details')
+        self.send_mail_mock = self.p.start()
+        return super().setUp()
+
+    def tearDown(self) -> None:
+        self.p.stop()
+        return super().tearDown()
+
     def test_create_order_on_checkout(self):
         # add 2 product to basket
         data1 = {'product_id': Product.objects.first().id, 'quantity': 1,}
@@ -217,11 +250,8 @@ class CheckoutTestCase(BasketTestMixin, APITestCase):
         basket_id = response.json()['id']
         basket = OscarBasket.objects.get(pk=basket_id)
 
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
-            'guest_email': 'mykejnr4@gmail.com'
-        }
-        response = self.client.post(self.checkout_url, data=data)
+        data = self.get_checkout_data()
+        response = self.client.post(self.checkout_url, data=data, format='json')
 
         self.assertTrue(response.status_code, status.HTTP_200_OK)
 
@@ -240,19 +270,32 @@ class CheckoutTestCase(BasketTestMixin, APITestCase):
         self.client.post(self.add_product_url, data=data1)
         response = self.client.post(self.add_product_url, data=data1)
 
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
-            # un-auth user, but not guest email, we expect an error msg
-        }
-        response = self.client.post(self.checkout_url, data=data)
+        data = self.get_checkout_data()
+        data.pop('guest_email')
+        response = self.client.post(self.checkout_url, data=data, format='json')
         res_data = response.json()
 
-        self.assertTrue(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
         self.assertEqual(
             res_data['guest_email'],
             ['Guest email is required for anonymous checkouts.']
         )
+
+    @patch('apps.shopapi.views.send_order_details.delay')
+    def test_sends_order_details_email(self, email_mock: MagicMock):
+        data1 = {'product_id': Product.objects.first().id, 'quantity': 1,}
+        self.client.post(self.add_product_url, data=data1)
+
+        data = self.get_checkout_data()
+        response = self.client.post(self.checkout_url, data=data, format='json')
+        order = response.data
+        order = Order.objects.get(pk=order['id'])
+        uuid = urlsafe_base64_encode(force_bytes(order.email))
+        token = simple_token.make_token(order.email)
+
+        email_mock.assert_called_with(order.email, uuid, token, ANY)
+
 
 
 def get_add_product_response_shape():

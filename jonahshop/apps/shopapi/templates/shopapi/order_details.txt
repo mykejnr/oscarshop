@@ -1,0 +1,13 @@
+Use the blow link to reset your password
+===============================================
+
+Link:
+{{order_url}}
+
+
+visit:
+{{base_url}}
+
+And enter the following datails into the form
+uuid: {{uuid64}}
+token: {{token}}

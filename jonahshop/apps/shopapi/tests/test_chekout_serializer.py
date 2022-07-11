@@ -1,16 +1,16 @@
-from unittest.mock import patch, PropertyMock
+from unittest.mock import patch
 
 from oscar.core.loading import get_model, get_class
 from oscar.apps.catalogue.models import Product as OscarProduct
 from oscar.apps.basket.models import Basket as OscarBasket
 from oscar.apps.order.abstract_models import AbstractOrder
 
-from rest_framework.test import APITestCase, APIRequestFactory, force_authenticate
+from rest_framework.test import APITestCase, APIRequestFactory
 
 from apps.shopapi.serializers.checkout import CheckoutSerializer
-from apps.shopapi.views import BasketViewSet
 from apps.shipping.methods import NoDeliveryRequired
 from apps.userapi.models import User
+from apps.payapi.paymethods import PaymentMethods
 
 
 Product: OscarProduct = get_model('catalogue', 'Product')
@@ -43,20 +43,11 @@ class CheckoutSerializerTestCase(APITestCase):
         self.request.user = user
         return super().setUp()
 
-    def test_creates_order(self):
+    def get_data(self, guest_email='mykejnr4@gmail.com'):
         data = {
+            'payment_method': PaymentMethods().methods()[0].label,
             'shipping_method': NoDeliveryRequired().code,
-        }
-
-        cser = CheckoutSerializer(data=data, context={'request': self.request})
-        cser.is_valid()
-
-        order = cser.save()
-        self.assertIsInstance(order, AbstractOrder)
-
-    def test_create_order_with_shipping_address(self):
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
+            'guest_email': guest_email,
             'shipping_address': {
                 'first_name': 'Michael',
                 'last_name': 'Mensah',
@@ -68,6 +59,19 @@ class CheckoutSerializerTestCase(APITestCase):
                 'notes': 'Brosankro new town. Adjescent methodist church'
             }
         }
+        return data
+
+    def test_creates_order(self):
+        data = self.get_data()
+
+        cser = CheckoutSerializer(data=data, context={'request': self.request})
+        cser.is_valid()
+
+        order = cser.save()
+        self.assertIsInstance(order, AbstractOrder)
+
+    def test_create_order_with_shipping_address(self):
+        data = self.get_data()
 
         cser = CheckoutSerializer(data=data, context={'request': self.request})
         cser.is_valid()
@@ -92,10 +96,7 @@ class CheckoutSerializerTestCase(APITestCase):
         )
 
     def test_delete_guest_email_if_user_is_authenticated(self):
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
-            'guest_email': 'mykejnr4@gmail.com'
-        }
+        data = self.get_data()
 
         cser = CheckoutSerializer(data=data, context={'request': self.request})
         cser.is_valid()
@@ -103,9 +104,8 @@ class CheckoutSerializerTestCase(APITestCase):
         self.assertEqual(cser.validated_data['guest_email'], '')
 
     def test_require_guest_email_for_anonymous_user(self):
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
-        }
+        data = self.get_data()
+        data.pop('guest_email')
 
         # self.userAuthMock.return_value = False
         with patch.object(User, 'is_authenticated', False):
@@ -118,9 +118,7 @@ class CheckoutSerializerTestCase(APITestCase):
         )
 
     def test_create_order_with_auth_user(self):
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
-        }
+        data = self.get_data()
 
         cser = CheckoutSerializer(data=data, context={'request': self.request})
         cser.is_valid()
@@ -129,12 +127,35 @@ class CheckoutSerializerTestCase(APITestCase):
         self.assertEqual(order.user, self.request.user)
 
     def test_submits_basket_after_order_placement(self):
-        data = {
-            'shipping_method': NoDeliveryRequired().code,
-        }
-
+        data = self.get_data()
         cser = CheckoutSerializer(data=data, context={'request': self.request})
         cser.is_valid()
         cser.save()
 
         self.assertEqual(self.basket.status, OscarBasket.SUBMITTED)
+
+    def test_invalid_payment_method(self):
+        data = self.get_data()
+        data['payment_method'] = 'InvalidMethod'
+        cser = CheckoutSerializer(data=data, context={'request': self.request})
+        cser.is_valid()
+
+        self.assertEqual(
+            str(cser.errors['payment_method'][0]), 'Invalid payment method.'
+        )
+
+    def test_create_payment_source(self):
+        data = self.get_data()
+        cser = CheckoutSerializer(data=data, context={'request': self.request})
+        cser.is_valid()
+        order = cser.save()
+
+        self.assertEqual(
+            data['payment_method'],
+            order.sources.first().source_type.name
+        )
+        # test allocated amount
+        self.assertEqual(
+            order.total_incl_tax,
+            order.sources.first().amount_allocated
+        )

@@ -1,6 +1,8 @@
-from time import sleep
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+
 from oscar.core.loading import get_model, get_class
-from oscar.apps.basket.models import Basket as OscarBasket, Line as OscarLine
+from oscar.apps.basket.models import Basket as OscarBasket
 
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
@@ -14,6 +16,8 @@ from apps.shopapi.serializers import (
     CheckoutSerializer,
     OrderSerializer
 )
+from apps.core.token import simple_token
+from apps.shopapi.tasks import send_order_details
 # Create your views here.
 
 
@@ -121,14 +125,21 @@ class BasketViewSet(
 
     @action(detail=False, methods=['post'])
     def checkout(self, request):
-        sleep(5)
         ctx = {'request': request}
         cser = CheckoutSerializer(data=request.data, context=ctx)
 
         if not cser.is_valid():
             return Response(cser.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        oser = OrderSerializer(cser.save(), context=ctx)
+        order  = cser.save()
+        oser = OrderSerializer(order, context=ctx)
+
+        uid = urlsafe_base64_encode(force_bytes(order.email))
+        token = simple_token.make_token(order.email)
+
+        base_url = request.build_absolute_uri('/order')
+        send_order_details.delay(order.email, uid, token, base_url) # celery task
+
         return Response(oser.data)
 
 

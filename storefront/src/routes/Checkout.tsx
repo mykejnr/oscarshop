@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { atom, useRecoilValue, useRecoilState } from 'recoil'
 import { SubmitHandler, useForm } from "react-hook-form"
 import { useDispatch, useSelector } from "react-redux"
@@ -15,11 +15,11 @@ import { TOrder } from "./Order"
 import { TSubmitFormErrors } from "../typedefs/form"
 import { extractFieldErros } from "../forms/utils"
 
-import type {
+import {
   ICheckoutFormData,
   TFormSection, TFormSectionProps,
   TLocalFieldProps, TNavButtonProps,
-  TNavigatorProps, TSectionElement
+  TNavigatorProps, TPaymentResponse, TSectionElement
 } from "../typedefs/checkout"
 import { Spinner } from "../utils/components"
 
@@ -308,6 +308,84 @@ const BasketSummary = () => {
 }
 
 
+const PaymentRequest = () => {
+  const dispatch = useDispatch()
+  const [response, setResponse] = useState<TPaymentResponse>({status: 'IDLE', message: ""})
+  const inputStyle = 'border rounded h-10 px-1 inline-block box-border'
+  const url = `ws://${window.location.host}/wbs/pay/`
+  let resMessage = ''
+  let showSpinner = false
+
+  const processMessage = (ev: MessageEvent<TPaymentResponse>) => {
+    let data: TPaymentResponse = JSON.parse(ev.data as never as string)
+    if (data.status === 'AUTHORIZED') {
+      dispatch(showPopup({
+        message: 'Payment received. Thank you for doing business with us.'
+      }))
+      data = {...data, status: 'IDLE'}
+    }
+    setResponse(data)
+  }
+
+  const processPayment = () => {
+    setResponse({status: 'CONNECTING', message: 'Connecting to server...'})
+    const ws = new WebSocket(url)
+    ws.onmessage = processMessage
+    ws.onopen = () => {
+      ws.send(JSON.stringify({order_number: '01223', momo_number: '0248352555'}))
+    }
+  }
+
+  if (response.status !== 'IDLE') {
+    resMessage = `(${response.status}) ${response.message}`
+  }
+  showSpinner = !(response.status === 'IDLE' || response.status === 'TIMEOUT')
+
+  return (
+    <div className="w-full p-10">
+    <div className="mx-auto w-[300px] box-border border rounded-b-md">
+      <div className="bg-accent-500 text-white p-5 text-center">
+        <div className="font-semibold uppercase">Make Payment</div>
+        <div className="text-2xl font-bold py-1">{formatPrice(352.32)}</div>
+        <div className="flex gap-2 mx-auto w-max">
+          <div className="w-10">
+            <img className="w-full" src={`images/momo.jpg`} alt="payment gateway logo" />
+          </div>
+          <span>MTN Mobile Money</span>
+        </div>
+      </div>
+      <div className="w-full box-border p-5">
+        <div className="font-semibold mb-2">Enter Mobile Money Number</div>
+        <div className="flex gap-2 box-border">
+          <input className={`${inputStyle} w-[60px] grow-0 text-center`} type='text' value='+233' disabled />
+          <input className={`${inputStyle}`} type='text' placeholder="Eg. 248352555" />
+        </div>
+        <div className="my-7 flex gap-2 align-middle">
+          {
+            showSpinner && <span className="shrink-0"><Spinner /></span>
+          }
+          <div className="text-red-600 text-semibold text-sm">{resMessage}</div>
+        </div>
+        <button
+          onClick={() => processPayment()}
+          className="button w-full"
+          type="button"
+          disabled={showSpinner}
+        >
+          {
+            !showSpinner ? 'Pay' :
+            <span className="flex align-middle gap-2 justify-center">
+              <Spinner /><span>Processing payment...</span>
+            </span>
+          }
+        </button>
+      </div>
+    </div>
+    </div>
+  )
+}
+
+
 const ButtonSpinner = () => (
   <>
     <span className="absolute left-2 top-[8px]">
@@ -363,6 +441,7 @@ const Checkout = () => {
   const [section, setSection ] = useRecoilState(sectionState)
   const [serverErrors, setServerErrors] = useRecoilState(errorsState)
   const [CurrentSection, prevSection, nextSection]= getSection(section)
+  const [requestPayment, setRequestPayment] = useState(true)
 
   const { handleSubmit, formState: {isSubmitting} } = useFormReturn
 
@@ -401,22 +480,25 @@ const Checkout = () => {
       </div>
       <div className="bg-white px-7">
       <div className="max-w-[1200px] mx-auto flex">
-        <div className="w-full px-20 pr-24 py-7 box-border">
-          {
-            serverErrors && 
-            <div className="text-red-500 bg-red-100 mb-5">
-              There are errors in your form please fix them and resubmit
+        {
+          requestPayment ? <PaymentRequest /> :
+          <div className="w-full px-20 pr-24 py-7 box-border">
+            {
+              serverErrors && 
+              <div className="text-red-500 bg-red-100 mb-5">
+                There are errors in your form please fix them and resubmit
+              </div>
+            }
+            <Navigation />
+            <div className="text-accent-400 font-semibold border-b relative my-10 border-accent-400">
+              <span className="absolute -top-4 block bg-white pr-3">{CurrentSection.label}</span>
             </div>
-          }
-          <Navigation />
-          <div className="text-accent-400 font-semibold border-b relative my-10 border-accent-400">
-            <span className="absolute -top-4 block bg-white pr-3">{CurrentSection.label}</span>
+            <form onSubmit={handleSubmit(onSubmit)}>
+              <CurrentSection {...useFormReturn} />
+              <NavButtons onPrev={back} onNext={next} submitting={isSubmitting} />
+            </form>
           </div>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            <CurrentSection {...useFormReturn} />
-            <NavButtons onPrev={back} onNext={next} submitting={isSubmitting} />
-          </form>
-        </div>
+        }
         <BasketSummary />
       </div>
       </div>

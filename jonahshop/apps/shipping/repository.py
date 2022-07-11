@@ -2,10 +2,13 @@ from oscar.apps.shipping.repository import Repository as OscarRepository
 
 from oscar.core.loading import get_class
 
-from apps.shipping.methods import HomeDelivery, PayOnDelivery, NoDeliveryRequired
+from apps.shipping.methods import (
+    DeliveryOnly,
+    PayOnDeliveryOnly,
+    PayOnDelivery,
+    NoDeliveryRequired
+)
 
-
-Free = get_class('shipping.methods', 'Free')
 
 class Repository(OscarRepository):
     """
@@ -14,7 +17,7 @@ class Repository(OscarRepository):
     """
 
     # A list instantiated shipping methods.
-    methods = (Free(), HomeDelivery(), PayOnDelivery(), NoDeliveryRequired())
+    methods = (DeliveryOnly(), PayOnDeliveryOnly(), PayOnDelivery(), NoDeliveryRequired())
 
     def get_default_shipping_method(self, basket, shipping_addr=None, **kwargs):
         # We need to implement this to return the default shipping method
