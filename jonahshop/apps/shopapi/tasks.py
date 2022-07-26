@@ -4,7 +4,7 @@ from django.template.loader import render_to_string
 from apps.core.email import send_mail
 
 
-@shared_task(name='userapi.send_reset_email')
+@shared_task(name='shopapi.send_order_details')
 def send_order_details(email_address, uuid64, token, base_url):
     ctx = {
         'token': token,

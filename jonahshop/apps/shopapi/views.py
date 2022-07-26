@@ -139,8 +139,11 @@ class BasketViewSet(
 
         base_url = request.build_absolute_uri('/order')
         send_order_details.delay(order.email, uid, token, base_url) # celery task
+        
+        data = oser.data
+        data['anonymous'] = {'uuid': uid, 'token': token}
 
-        return Response(oser.data)
+        return Response(data)
 
 
 class OrderViewSet(
@@ -149,3 +152,7 @@ class OrderViewSet(
     viewsets.GenericViewSet):
 
     queryset = Order.objects
+
+    @action(detail=False, methods=['post'])
+    def anonymous(self, request):
+        pass

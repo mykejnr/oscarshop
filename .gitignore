@@ -54,3 +54,6 @@ fakeinbox
 
 # supervisord <program> logs
 log
+
+# development debuging
+debug.log

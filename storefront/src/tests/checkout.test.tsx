@@ -1,9 +1,11 @@
 import {render, fireEvent, screen, waitFor } from '@testing-library/react'
+import { RecoilRoot } from "recoil";
 import { act } from 'react-dom/test-utils';
 import { Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import {setupServer} from 'msw/node'
 import { rest } from 'msw';
+import WS from 'jest-websocket-mock'
 
 import { resetState } from '../actions';
 import * as cart_reduder from '../reducers/cart_reducer';
@@ -16,14 +18,31 @@ import * as request_utils from '../utils/requests'
 import Checkout from '../routes/Checkout';
 import { createMemoryHistory } from 'history';
 import userEvent from '@testing-library/user-event';
-import { TOrder } from '../routes/Order';
+import { TOrder } from '../typedefs/order';
+import { IPaymentMethod, IShippingMethod, TFormSection } from '../typedefs/checkout';
 
 
 const server = setupServer()
 
 beforeAll(() => {
     server.listen()
+    const url = `ws://${window.location.host}/wbs/pay/`
+    const ws = new WS(url)
 })
+
+afterAll(() => {
+    WS.clean()
+})
+
+const getShipData = (): IShippingMethod[] => ([
+    {code: 'noshipping', name: 'firstname', description: 'first desc', price: 23.3},
+    {code: 'shippingreq', name: 'secname', description: 'sec desc', price: 33.3},
+])
+
+const getPayData = (): IPaymentMethod[] => ([
+    {label: 'momo', name: 'MTN MOMO', description: 'mobile money', icon: 'momo.jpg'},
+    {label: 'vfcash', name: 'VF Cash', description: 'voda cash', icon: 'vfc.jpg'},
+])
 
 beforeEach(() => {
     store.dispatch(resetState())
@@ -31,6 +50,12 @@ beforeEach(() => {
     server.use(
         rest.post(getApi('checkout'), (req, res, ctx) => {
             return res(ctx.json(getOrder()))
+        }),
+        rest.post(getApi('shippingMethods'), (req, res, ctx) => {
+            return res(ctx.json(getShipData()))
+        }),
+        rest.post(getApi('paymentMethods'), (req, res, ctx) => {
+            return res(ctx.json(getPayData()))
         }),
     )
 })
@@ -45,12 +70,14 @@ const renderCheckoutPage = () => {
 
     return [history, render(
         <Provider store={store}>
+        <RecoilRoot>
             <Router location={url} navigator={history}>
                 <Routes>
                     <Route path='/checkout' element={<Checkout />}/>
                     <Route path='/order/:uuid/:token' element={<div data-testid='test-order'></div>}/>
                 </Routes>
             </Router>
+        </RecoilRoot>
         </Provider>
     )]
 }
@@ -89,14 +116,14 @@ const getOrder = (): TOrder => ({
     status: 'SHIPPED',
     guest_email: 'mykejnr4@gmail.com',
     date_placed: '06/06/2022',
-    anonnymous: {
+    anonymous: {
         uuid: '2SDDRDJKLxdOIi98',
         token: 'EKKE@DDERETKOOWKD'
     }
 })
 
 
-const populateForm = () => {
+const populateForm = async (section: TFormSection = 'review') => {
     // const paymethod = screen.getByLabelText('payment_method')
     const sa = getCheckoutData().shipping_address
     const buttonElem = screen.getByTestId('chonext')
@@ -109,13 +136,16 @@ const populateForm = () => {
 
     // next section - shipping method
     fireEvent.click(buttonElem)
-    const shipmethod = document.getElementsByName('shipping_method')[0]
+    const shipmethod = (await screen.findAllByRole('radio'))[0]
     userEvent.click(shipmethod)
+    if (section === 'ship_method') return
 
     // next section - payment method
     fireEvent.click(buttonElem)
-    const paymethod = document.getElementsByName('payment_method')[0]
+    const paymethod = (await screen.findAllByRole('radio'))[0]
+    // const paymethod = document.getElementsByName('payment_method')[0]
     userEvent.click(paymethod)
+    if (section === 'pay_method') return
 
     // next section - payment submit
     fireEvent.click(buttonElem)
@@ -155,40 +185,6 @@ test("reqeustCheckout() - Should return errors on failure", async () => {
 });
 
 
-test("Should display success message after submission - Integration", async () => {
-    jest.spyOn(request_utils, 'submitForm').mockImplementation(
-        ({data, dispatch}) => new Promise((rs, rj) => {
-            rs({ok: true, response_data: getOrder()})
-        })
-    )
-
-    renderCheckoutPage()
-    populateForm()
-    await act(() => fireEvent.click(screen.getByTestId('chosubmit')) as never)
-
-    const popupMessage = store.getState().ui.popupMessage as IPopupMessage
-    expect(popupMessage.title).toEqual('Order Placed')
-    expect(popupMessage.type).toEqual('html')
-})
-
-
-test("Should redirect to order page after checkout - Integration", async () => {
-    jest.spyOn(request_utils, 'submitForm').mockImplementation(
-        ({data, dispatch}) => new Promise((rs, rj) => {
-            rs({ok: true, response_data: getOrder()})
-        })
-    )
-
-    let history: any
-    [history, ] = renderCheckoutPage()
-    populateForm()
-    await act(() => fireEvent.click(screen.getByTestId('chosubmit')) as never)
-
-    const anm = getOrder().anonnymous
-    expect(history.location.pathname).toBe(`/order/${anm?.uuid}/${anm?.token}`)
-})
-
-
 test("Should clear basket from store after checkout - Integration", async () => {
     jest.spyOn(request_utils, 'submitForm').mockImplementation(
         ({data, dispatch}) => new Promise((rs, rj) => {
@@ -198,8 +194,8 @@ test("Should clear basket from store after checkout - Integration", async () => 
     const cartSpy = jest.spyOn(cart_reduder, 'clearCart')
 
     renderCheckoutPage()
-    populateForm()
-    await act(() => fireEvent.click(screen.getByTestId('chosubmit')) as never)
+    await populateForm()
+    await act(() => fireEvent.click(screen.getByTestId('button-spinner')) as never)
 
     expect(cartSpy).toBeCalled()
 })
@@ -220,8 +216,126 @@ test("Should render shipping address errors if checkout fails - Ingegration", as
     const cartSpy = jest.spyOn(cart_reduder, 'clearCart')
 
     renderCheckoutPage()
-    populateForm()
-    await act(() => fireEvent.click(screen.getByTestId('chosubmit')) as never)
+    await populateForm()
+    await act(() => fireEvent.click(screen.getByTestId('button-spinner')) as never)
 
     await waitFor(() => screen.findByText(err_msg))
+})
+
+
+test("Should request and render shipping methods on mount - Integration", async () => {
+    renderCheckoutPage()
+    await populateForm('ship_method')
+    const options = screen.getAllByRole('radio')
+    const option1 = options[0] as HTMLInputElement
+
+    expect(option1.value).toBe(getShipData()[0].code)
+    expect(options.length).toBe(getShipData().length)
+})
+
+
+test("Should request and render payment methods on mount - Integration", async () => {
+    renderCheckoutPage()
+    await populateForm('pay_method')
+    const options = screen.getAllByRole('radio')
+    const option1 = options[0] as HTMLInputElement
+
+    expect(option1.value).toBe(getPayData()[0].label)
+    expect(options.length).toBe(getPayData().length)
+})
+
+
+test("Should render errors if shipping methods request fails - Integration", async () => {
+    server.use(
+        rest.post(getApi('shippingMethods'), (req, res, ctx) => res(ctx.status(599)))
+    )
+    renderCheckoutPage()
+    const buttonElem = screen.getByTestId('chonext')
+
+    // next section - shipping method
+    fireEvent.click(buttonElem)
+
+    await screen.findByText("Fetching items failed. Please contact customer support if problem persists.")
+})
+
+
+test("Should render errors if payment methods request fails - Integration", async () => {
+    server.use(
+        rest.post(getApi('paymentMethods'), (req, res, ctx) => res(ctx.status(599)))
+    )
+    renderCheckoutPage()
+    const buttonElem = screen.getByTestId('chonext')
+
+    // next section - shipping method
+    fireEvent.click(buttonElem)
+    // next section - payment method
+    fireEvent.click(buttonElem)
+
+    await screen.findByText("Fetching items failed. Please contact customer support if problem persists.")
+})
+
+
+test("Should refetch if shipping methods on request fail - Integration", async () => {
+    server.use(
+        rest.post(getApi('shippingMethods'), (req, res, ctx) => res(ctx.status(599)))
+    )
+    renderCheckoutPage()
+    const buttonElem = screen.getByTestId('chonext')
+
+    // next section - shipping method
+    fireEvent.click(buttonElem)
+    const refethBtn = await screen.findByTestId('failed-retry')
+    server.use(
+        rest.post(getApi('shippingMethods'), (req, res, ctx) => res(ctx.json(getShipData())))
+    )
+
+    await act(() => fireEvent.click(refethBtn) as never)
+
+    const options = await screen.findAllByRole('radio')
+    const option1 = options[0] as HTMLInputElement
+
+    expect(option1.value).toBe(getShipData()[0].code)
+    expect(options.length).toBe(getShipData().length)
+})
+
+
+test("Should refetch if payent methods on request fail - Integration", async () => {
+    server.use(
+        rest.post(getApi('paymentMethods'), (req, res, ctx) => res(ctx.status(599)))
+    )
+    renderCheckoutPage()
+    const buttonElem = screen.getByTestId('chonext')
+
+    // next section - shipping method
+    fireEvent.click(buttonElem)
+    // next section - payment method
+    fireEvent.click(buttonElem)
+
+    const refethBtn = await screen.findByTestId('failed-retry')
+    server.use(
+        rest.post(getApi('paymentMethods'), (req, res, ctx) => res(ctx.json(getPayData())))
+    )
+
+    await act(() => fireEvent.click(refethBtn) as never)
+
+    const options = await screen.findAllByRole('radio')
+    const option1 = options[0] as HTMLInputElement
+
+    expect(option1.value).toBe(getPayData()[0].label)
+    expect(options.length).toBe(getPayData().length)
+})
+
+
+test("Should show payment request page after successful order", async () => {
+    jest.spyOn(request_utils, 'submitForm').mockImplementation(
+        ({data, dispatch}) => new Promise((rs, rj) => {
+            rs({ok: true, response_data: getOrder()})
+        })
+    )
+
+    renderCheckoutPage()
+    await populateForm()
+    await act(() => fireEvent.click(screen.getByTestId('button-spinner')) as never)
+
+    await screen.findByText("Make Payment")
 })

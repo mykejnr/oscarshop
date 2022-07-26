@@ -26,12 +26,17 @@ const API = {
     confirmReset: '/api/user/confirm_reset/',
     changePassword: '/api/user/change_password/',
     changeEmail: '/api/user/change_email/',
-    activateEmail: '/api/user/activate_email/'
+    activateEmail: '/api/user/activate_email/',
+    shippingMethods: '/api/shipping/methods/',
+    paymentMethods: '/api/payment/methods/',
 }
-
-
 export type APIName = keyof typeof API
 
+
+const WSAPI = {
+    payCheckout: '/wbs/pay/'
+}
+export type WSAPIName = keyof typeof WSAPI
 
 /**
  * Provide a name of a url to get the full path of the url
@@ -42,6 +47,28 @@ export type APIName = keyof typeof API
  */
 export const getApi = (name: APIName, param?: string): string => {
     return API[name].replace('{param}', param || "")
+}
+
+
+/**
+ * Provide a name of a websocket url and get the full path to
+ * the websocket endpoint
+ * @param name 
+ * @returns 
+ */
+export const getWsApi = (name: WSAPIName): string => {
+    // Unlike getApi(), ws urls are not proxied due to some issues
+    // in the library 'http-proxy-middleware' which is used in setupProxy.js
+    // the library causes chrome (and maybe other browsers) to report close code
+    // '1006' (abnormal closing) even when the websocket closes normally or even
+    // when it closes with other close code.
+    // To avoid this situation we request from the backend dev server directly
+    // At least for now, since there are no cookie and csrf issues.
+    let host = window.location.host
+    if (host==='localhost:3000') { // we are in devmode (lazy detection of development mode, can we make it better?)
+        host = 'localhost:8000'
+    }
+    return `ws://${host}${WSAPI[name]}`
 }
 
 

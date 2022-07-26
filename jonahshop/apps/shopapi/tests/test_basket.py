@@ -296,6 +296,29 @@ class CheckoutTestCase(BasketTestMixin, APITestCase):
 
         email_mock.assert_called_with(order.email, uuid, token, ANY)
 
+    def test_include_for_details_anonymous_lookup(self):
+        """
+        Test view include 'uuid' and 'token' tobe used be used by
+        anonymous user to lookup their order
+        """
+        data1 = {'product_id': Product.objects.first().id, 'quantity': 1,}
+        self.client.post(self.add_product_url, data=data1)
+
+        data = self.get_checkout_data()
+        response = self.client.post(self.checkout_url, data=data, format='json')
+
+        order_data = response.data
+        order = Order.objects.get(pk=order_data['id'])
+        uuid = urlsafe_base64_encode(force_bytes(order.email))
+        token = simple_token.make_token(order.email)
+
+        anon = order_data['anonymous']
+
+        self.assertEqual(anon, {
+            'uuid': uuid,
+            'token': token
+        })
+
 
 
 def get_add_product_response_shape():

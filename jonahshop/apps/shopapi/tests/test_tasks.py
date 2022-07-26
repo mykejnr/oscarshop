@@ -24,7 +24,7 @@ class TestSendOrderDetails(TestCase):
         uuid = 'wwexkwERE38idw0skdi'
         token = 'SERSdieX800lXwere'
 
-        base_url = 'http://test.com'
+        base_url = 'http://test.com/order'
         email = 'mykejnr4@gmail.com'
 
         with patch('apps.shopapi.tasks.send_mail') as mail_mock, \

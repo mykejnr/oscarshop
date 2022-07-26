@@ -13,7 +13,7 @@ export type TOrder = {
     status: string,
     guest_email: string,
     date_placed: string,
-    anonnymous?: {
+    anonymous?: {
         uuid: string,
         token: string
     }

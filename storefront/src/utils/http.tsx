@@ -50,7 +50,7 @@ export const makeRequest = (method: string) => async (props: RequestArgs) => {
         // Catch the error (client side erros) and show the error message
         // We still return a custom Response to have a uniform API
         dispatch && dispatch(showPopup({title: 'Client Error', message: e.message}))
-        const res = new Response(null, {status: 600})
+        const res = new Response(null, {status: 599})
         return new Promise<Response>(resolve => resolve(res))
     }
 }

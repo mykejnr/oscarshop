@@ -7,7 +7,7 @@ Order = get_model('order', 'Order')
 ShippingAddress = get_model("order", "ShippingAddress")
 BillingAddress = get_model("order", "BillingAddress")
 
-class OrderSerializer(serializers.HyperlinkedModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
