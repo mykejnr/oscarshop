@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import { CSSTransition } from 'react-transition-group';
-import { NavLink } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { FaSearch, FaUser, FaShoppingBag } from 'react-icons/fa';
 import { IconType } from "react-icons";
 import { getUser, toggleMiniCart, toggleMiniUser } from "../actions";
@@ -80,7 +80,9 @@ const Header = () => {
   return(
     <header className="header shadow z-50">
       <div className="border-box px-10 flex justify-between max-w-7xl mx-auto">
-        <div className="logo my-auto text-sky-500 font-bold text-lg">JonaShop</div>
+        <div className="logo my-auto text-sky-500 font-bold text-lg">
+          <Link to='/'>JonaShop</Link>
+        </div>
         <ProductTypesNav />
         <MiniButtons />
       </div>

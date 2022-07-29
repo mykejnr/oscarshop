@@ -10,7 +10,6 @@ export const PopupMessage = () => {
   const dispatch = useDispatch()
   const popup = useSelector((state: IRootState) => state.ui.popupMessage)
 
-  console.log(popup)
   if (popup === 'nopopup') return <></>
 
   let message_type = popup.type || "raw"

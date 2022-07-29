@@ -6,6 +6,7 @@ import { buttonStyles } from "./button";
 import { formatPrice } from "../utils";
 import { showDialog, toggleMiniUser } from "../actions";
 import React, { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 
 type ActionButtonProps = {
@@ -25,7 +26,15 @@ const ActionButton = ({text, Icon, onClick}: ActionButtonProps) => (
 )
 
 const Cart = () => {
+  const navigate = useNavigate()
   const cart = useSelector((state: IRootState) => state.cart)
+  const dispatch = useDispatch()
+
+  const navChekout = () => {
+    navigate('/checkout')
+    dispatch(toggleMiniUser())
+  }
+
   return (
     <div className="border-b border-gray-200 p-4 flex gap-4">
       <div><FaShoppingBag size="18" /></div>
@@ -35,7 +44,9 @@ const Cart = () => {
           <span className="font-semibold">{formatPrice(cart.total_price)}</span>
         </div>
         <div className="flex justify-end mt-2">
-          <button className={buttonStyles}>checkout</button>
+          <button className={buttonStyles} onClick={navChekout}>
+            checkout
+          </button>
         </div>
       </div>
     </div>

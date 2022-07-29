@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux"
 import { fetchBasket, toggleMiniCart } from "../actions";
-import { BsPlus, BsDash, BsArrowRight, BsTrash } from 'react-icons/bs';
-import { Button } from "./button";
+import { BsPlus, BsDash, BsArrowRight, BsTrash, BsBasket2Fill } from 'react-icons/bs';
+import { Button, buttonStyles } from "./button";
 import { useNavigate } from "react-router-dom";
 
 import type { IconType } from "react-icons";
-import type { IBasketLine } from "../typedefs/basket";
+import type { IBasket, IBasketLine } from "../typedefs/basket";
+import { formatPrice } from "../utils";
 
 const CartHeader = () => {
   const dispatch = useDispatch();
@@ -42,9 +43,8 @@ const CartFooter = ({cart_total}: {cart_total: number}) => {
 
   return (
     <div className={footerStyles}>
-      <div className="grow">
-        <span className="text-xs align-baseline">GH&#8373;</span>
-        <span className="font-semibold align-top text-lg">{cart_total}</span>
+      <div className="grow font-bold">
+        {formatPrice(cart_total)}
       </div>
       <Button text="Checkout" onClick={gotoCheckout}/>
     </div>
@@ -77,10 +77,7 @@ const CartItem = ({line}: {line: IBasketLine}) => (
         <div className="grow flex flex-col space-between">
             <div className="leading-tight text-sm grow">{line.product.title}</div>
             <div className="text-accent-500 pb-2">
-              <span className="text-xs align-baseline">GH&#8373;</span>
-              <span className="font-semibold align-top text-lg">
-                {line.product.price}
-              </span>
+              {formatPrice(line.product.price)}
             </div>
         </div>
         <div className="flex flex-col gap-1">
@@ -103,9 +100,40 @@ const CartItemList = ({lines}: {lines: IBasketLine[]}) => (
 )
 
 
+const EmptyCart = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const bStyles = `${buttonStyles} mx-auto w-28 h-8`
+
+  const shopNow = () => {
+    dispatch(toggleMiniCart())
+    navigate('/catalogue')
+  }
+
+  return (
+    <div className="w-full border-box absolute left-0 top-14 bottom-0">
+      <div className="w-full px-5 absolute top-1/2 -translate-y-1/2">
+        <div className="mx-auto">
+          <BsBasket2Fill size="80" className="mx-auto"/>
+        </div>
+        <div className="text-center my-7">
+          Your basket is empty. Let's add some items.
+        </div>
+        <button
+          className={bStyles}
+          onClick={shopNow}
+        >
+          Shop now
+        </button>
+      </div>
+    </div>
+  )
+}
+
+
 const MiniCart = () => {
     const dispatch = useDispatch();
-    const cart = useSelector((state: IRootState) => state.cart)
+    const cart: IBasket = useSelector((state: IRootState) => state.cart)
     const ui = useSelector((state: IRootState) => state.ui)
 
     let conStyles = ui.miniCartVisible ? "right-0 shadow-2xl" : "-right-96 shadow-none"
@@ -121,8 +149,13 @@ const MiniCart = () => {
     return (
         <div className={styles}>
             <CartHeader />
-            <CartItemList lines={cart.lines} />
-            <CartFooter cart_total={cart.total_price} />
+            {cart.lines.length ?
+              <>
+                <CartItemList lines={cart.lines} />
+                <CartFooter cart_total={cart.total_price} />
+              </> :
+              <EmptyCart />
+            }
         </div>
     )
 }
