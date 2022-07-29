@@ -12,7 +12,7 @@ export const Product = ({ product }) => {
   return (
     <div className="Product" data-testid="product" title={product.title}>
       <div className="w-full mb-4">
-        <img data-testid="product-image" className="w-full w-4/5 mx-auto" src={product.image} alt="display of product" />
+        <img data-testid="product-image" className="w-4/5 mx-auto" src={product.image} alt="display of product" />
       </div>
       <div className="text-center">
         <div className="mb-2">{product.title}</div>
@@ -48,7 +48,7 @@ export const ProductListing = () => {
 };
 
 
-function Catalog() {
+const Catalog = () => {
     return (
         <div className="Catalog">
             <ProductListing />

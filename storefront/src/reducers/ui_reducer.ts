@@ -23,7 +23,7 @@ const uiReducer = createReducer(initialState, (builder) => {
   .addCase(showPopup, (state, {payload}) => {
     state.popupMessage = payload
   })
-  .addDefaultCase(() => initialState)
+  // .addDefaultCase(() => initialState)
 })
 
 export default uiReducer

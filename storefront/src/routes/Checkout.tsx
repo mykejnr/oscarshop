@@ -575,10 +575,25 @@ const NavButtons = (props: TNavButtonProps) => {
 
 const Checkout = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const [order, setOrder] = useRecoilState(orderState)
+  const cart: IBasket = useSelector((state:IRootState) => state.cart)
+
+  const cart_n = cart.lines.length
+  const order_n = order === undefined ? undefined  : order.number
+
+  useEffect(() => {
+    if (!cart_n && order_n === undefined) {
+      const message = "Your basket is empty. Please add some items."
+      dispatch(showPopup({message}))
+      navigate('/catalogue/')
+    }
+  // eslint-disable-next-line
+  }, [cart_n, order_n])
+
   const useFormReturn = useForm<ICheckoutFormData>({})
   const [section, setSection ] = useRecoilState(sectionState)
   const [serverErrors, setServerErrors] = useRecoilState(errorsState)
-  const [order, setOrder] = useRecoilState(orderState)
   const [CurrentSection, prevSection, nextSection]= getSection(section)
 
   const { handleSubmit, formState: {isSubmitting} } = useFormReturn
