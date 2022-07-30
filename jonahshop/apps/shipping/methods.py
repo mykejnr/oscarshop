@@ -18,7 +18,7 @@ class DeliveryOnly(Base):
     def calculate(self, basket):
         return prices.Price(
             currency=basket.currency,
-            excl_tax=D('00.00'), tax=D('0.00'))
+            excl_tax=D('25.00'), tax=D('0.00'))
 
 
 class PayOnDeliveryOnly(Base):

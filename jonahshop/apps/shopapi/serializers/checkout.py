@@ -33,10 +33,19 @@ class PriceSerializer(serializers.Serializer):
     tax = serializers.DecimalField(decimal_places=2, max_digits=12, required=False)
 
 
+valDict = {'required': True, 'allow_blank': False}
 class ShippingAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShippingAddress
         fields = "__all__"
+        extra_kwargs = {
+            'first_name': valDict,
+            'last_name': valDict,
+            'phone_number': valDict,
+            'state': valDict,
+            'line4': valDict,
+            'line1': valDict,
+        }
 
 
 class BillingAddressSerializer(serializers.ModelSerializer):

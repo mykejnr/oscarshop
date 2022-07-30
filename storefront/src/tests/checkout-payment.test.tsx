@@ -65,7 +65,7 @@ const renderPaymentRequest = () => {
         <RecoilRoot initializeState={(snap) => snap.set(orderState, getOrder())}>
             <Router location={url} navigator={history}>
                 <Routes>
-                    <Route path='/checkout' element={<PaymentRequest />}/>
+                    <Route path='/checkout' element={<PaymentRequest paymentMethod='vf_cash' />}/>
                     <Route path='/order/:uuid/:token' element={<div data-testid='test-order'></div>}/>
                 </Routes>
             </Router>

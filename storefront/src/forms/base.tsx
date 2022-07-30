@@ -288,6 +288,7 @@ export type TRadioOption = {
   label: string,
   description: string,
   icon?: string,
+  [extraValue: string]: any,
 }
 
 export type TFormFieldProps = {

@@ -87,5 +87,6 @@ export type TPaymentResponse = {
 
 export type TPaymentRequestUIProps = {
   response: TPaymentResponse
-  processPayment: (momo_number: number) => void
+  processPayment: (momo_number: number) => void,
+  paymentMethod: string
 }

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState, useRef } from "react"
-import { atom, useRecoilValue, useRecoilState } from 'recoil'
-import { SubmitHandler, useForm } from "react-hook-form"
+import { atom, useRecoilValue, useRecoilState, selectorFamily } from 'recoil'
+import { SubmitHandler, useForm, useWatch } from "react-hook-form"
 import { useDispatch, useSelector } from "react-redux"
 import { Field as GenericField, RadioField, TRadioOption, TSelectOptions } from "../forms/base"
 import { formatPrice } from "../utils"
@@ -51,6 +51,28 @@ const payMethodsState = atom<TRadioOption[]>({
 export const orderState = atom<TOrder>({
   key: 'CheckoutOrderState',
   default: undefined
+})
+
+const shipMethodSelected = selectorFamily<TRadioOption | undefined, string>({
+  key: 'CheckoutShipMethodSelected',
+  get: (ship_method) => ({get}) => {
+    const methods = get(shipMethodsState)
+    for (const method of methods) {
+      if (method.value === ship_method) return method
+    }
+    return undefined
+  }
+})
+
+const payMethodSelected = selectorFamily<TRadioOption | undefined, string>({
+  key: 'CheckoutPayMethodSelected',
+  get: (pay_method) => ({get}) => {
+    const methods = get(payMethodsState)
+    for (const method of methods) {
+      if (method.value === pay_method) return method
+    }
+    return undefined
+  }
 })
 
 
@@ -343,6 +365,9 @@ const Review = (props: TFormSectionProps) => {
   const phone = `(${sa.postcode}) ${sa.phone_number}`
   const country = countries[sa.country as keyof typeof countries]
 
+  const ship_method_name = useRecoilValue(shipMethodSelected(shipping_method))?.label || ""
+  const pay_method_name = useRecoilValue(payMethodSelected(payment_method))?.label || ""
+
   return (
     <div>
       <div className="font-bold mb-5">Shipping Address</div>
@@ -355,15 +380,15 @@ const Review = (props: TFormSectionProps) => {
       </div>
       <div className="font-bold mb-5">Other Information</div>
       <div className="grid grid-cols-2 pl-5">
-        <ReviewField name='Shipping Method' value={shipping_method} />
-        <ReviewField name='Payment Method' value={payment_method} />
+        <ReviewField name='Shipping Method' value={ship_method_name} />
+        <ReviewField name='Payment Method' value={pay_method_name} />
       </div>
       <div className="font-bold mb-5">Notes</div>
       <div className="pl-5">{sa.notes}</div>
     </div>
   )
 }
-Review.label = 'Review'
+Review.label = 'Please Review Your Details Before You Submit'
 
 
 const BasketLine = ({product, quantity}: IBasketLine) => (
@@ -385,8 +410,22 @@ const TotalLine = ({item, amount}: {item: string, amount: number}) => (
 )
 
 
-const BasketSummary = () => {
+const BasketSummary = (props: TFormSectionProps) => {
   const cart: IBasket = useSelector((state:IRootState) => state.cart)
+  const order = useRecoilValue(orderState)
+  // const ship_method = props.watch('shipping_method', '')
+  const ship_method = useWatch({control: props.control, name: "shipping_method", defaultValue: ""})
+  const ship_fee = useRecoilValue(shipMethodSelected(ship_method as string))?.price || 0
+  let total: number, subtotal: number
+
+  // As soon as order is created then, the cart should have been emptied
+  if (order !== undefined) {
+    total = order.total_excl_tax
+    subtotal = total - ship_fee
+  } else {
+    subtotal = cart.total_price
+    total = subtotal + ship_fee
+  }
 
   return (
     <div className="w-96 shrink-0 border-l p-7">
@@ -397,13 +436,13 @@ const BasketSummary = () => {
         }
       </div>
       <div className="border-b py-3">
-        <TotalLine item="Subtotal" amount={cart.total_price} />
-        <TotalLine item="Shipping" amount={0} />
+        <TotalLine item="Subtotal" amount={subtotal} />
+        <TotalLine item="Shipping" amount={ship_fee} />
         <TotalLine item="Discount" amount={0} />
       </div>
       <div className="gap-4 justify-between flex pt-3">
         <div className="font-bold">Total</div>
-        <div className="font-semibold text-accent-500">{formatPrice(cart.total_price)}</div>
+        <div className="font-semibold text-accent-500">{formatPrice(total)}</div>
       </div>
     </div>
   )
@@ -411,10 +450,13 @@ const BasketSummary = () => {
 
 
 const PaymentRequestUI = (props: TPaymentRequestUIProps) => {
-  const {response, processPayment} = props
+  const {response, processPayment, paymentMethod} = props
   const order = useRecoilValue(orderState)
   const numberRef = useRef<HTMLInputElement>(null)
   const [numberValid, setNumberValid] = useState(true)
+  const pay_method_options = useRecoilValue(payMethodSelected(paymentMethod))
+  const pay_method_name = pay_method_options?.label
+  const pay_method_icon = pay_method_options?.icon
 
   const inputStyle = 'border rounded h-10 px-1 inline-block box-border'
   const showSpinner = response.status === 102 // processing
@@ -440,9 +482,9 @@ const PaymentRequestUI = (props: TPaymentRequestUIProps) => {
         <div className="text-2xl font-bold py-1">{formatPrice(order.total_excl_tax)}</div>
         <div className="flex gap-2 mx-auto w-max">
           <div className="w-10">
-            <img className="w-full" src={`images/momo.jpg`} alt="payment gateway logo" />
+            <img className="w-full" src={`images/${pay_method_icon}`} alt="payment gateway logo" />
           </div>
-          <span>MTN Mobile Money</span>
+          <span>{pay_method_name}</span>
         </div>
       </div>
       <div className="w-full box-border p-5">
@@ -476,12 +518,11 @@ const PaymentRequestUI = (props: TPaymentRequestUIProps) => {
 }
 
 
-export const PaymentRequest = () => {
+export const PaymentRequest = ({paymentMethod}: {paymentMethod: string}) => {
   const order = useRecoilValue(orderState)
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const [response, setResponse] = useState<TPaymentResponse>({status: 0, status_text: 'IDLE', message: ""})
-
 
   const processMessage = (ev: MessageEvent<TPaymentResponse>) => {
     let data: TPaymentResponse = JSON.parse(ev.data as never as string)
@@ -536,7 +577,11 @@ export const PaymentRequest = () => {
     }
   }
 
-  return <PaymentRequestUI response={response} processPayment={processPayment}/>
+  return <PaymentRequestUI
+          response={response}
+          processPayment={processPayment}
+          paymentMethod={paymentMethod}
+        />
 }
 
 
@@ -596,14 +641,20 @@ const Checkout = () => {
   const [serverErrors, setServerErrors] = useRecoilState(errorsState)
   const [CurrentSection, prevSection, nextSection]= getSection(section)
 
-  const { handleSubmit, formState: {isSubmitting} } = useFormReturn
+  const { handleSubmit, getValues, formState: {isSubmitting} } = useFormReturn
 
   const next = () => setSection(nextSection)
   const back = () => setSection(prevSection)
 
   const ignore_errors = [400]
 
-  const onSubmit: SubmitHandler<ICheckoutFormData> = async (data) => {
+  const onSubmit: SubmitHandler<ICheckoutFormData> = async (form_data) => {
+    // first properly format phone number
+    const {postcode, phone_number} = form_data.shipping_address
+    const phone = postcode + Number(phone_number)
+    const data = {...form_data}
+    data.shipping_address.phone_number = phone
+
     const res = await submitForm<ICheckoutFormData, TOrder>({
         data, dispatch, ignore_errors, url_name: 'checkout'
     })
@@ -626,7 +677,7 @@ const Checkout = () => {
       <div className="bg-white px-7">
       <div className="max-w-[1200px] mx-auto flex">
         {
-          order ? <PaymentRequest /> :
+          order ? <PaymentRequest paymentMethod={getValues().payment_method} /> :
           // true ? <PaymentRequest /> :
           <div className="w-full px-20 pr-24 py-7 box-border">
             {
@@ -645,7 +696,7 @@ const Checkout = () => {
             </form>
           </div>
         }
-        <BasketSummary />
+        <BasketSummary {...useFormReturn}  />
       </div>
       </div>
     </div>
