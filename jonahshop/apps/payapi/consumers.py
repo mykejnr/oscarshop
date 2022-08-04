@@ -29,7 +29,6 @@ class PaymentConsumer(AsyncJsonWebsocketConsumer):
             # To supply both order number and momo number. Howerver we
             # handle and log the incident (for further investigation)
             await self.close(4007)
-            print(content, '4007')
             return
         try:
             self.order : Order= await database_sync_to_async(self.get_order)()
@@ -39,7 +38,6 @@ class PaymentConsumer(AsyncJsonWebsocketConsumer):
             # our client is supposed to send an order number that it
             # earlier received from this server
             await self.close(4004)
-            print(content, '4004')
         else:
             self.source: Source = await database_sync_to_async(self.get_source)()
             source_type = await database_sync_to_async(self.get_source_type)()

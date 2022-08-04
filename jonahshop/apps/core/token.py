@@ -130,5 +130,7 @@ class SimpleToken(TokenGenerator):
         if not constant_time_compare(self.make_token_with_timestamp(hash_value, ts), token):
             return False
 
+        return True
+
 
 simple_token = SimpleToken()

@@ -12,6 +12,7 @@ from rest_framework import serializers
 
 from apps.shipping.methods import NoDeliveryRequired
 from apps.shipping.repository import Repository
+from apps.shipping.serializers.address import ShippingAddressSerializer
 from apps.payapi.paymethods import PaymentMethods
 
 
@@ -31,21 +32,6 @@ class PriceSerializer(serializers.Serializer):
     excl_tax = serializers.DecimalField(decimal_places=2, max_digits=12, required=True)
     incl_tax = serializers.DecimalField(decimal_places=2, max_digits=12, required=False)
     tax = serializers.DecimalField(decimal_places=2, max_digits=12, required=False)
-
-
-valDict = {'required': True, 'allow_blank': False}
-class ShippingAddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ShippingAddress
-        fields = "__all__"
-        extra_kwargs = {
-            'first_name': valDict,
-            'last_name': valDict,
-            'phone_number': valDict,
-            'state': valDict,
-            'line4': valDict,
-            'line1': valDict,
-        }
 
 
 class BillingAddressSerializer(serializers.ModelSerializer):
@@ -111,7 +97,8 @@ class CheckoutSerializer(serializers.Serializer, OrderPlacementMixin):
         vd = validated_data
 
         sa = vd.get('shipping_address', None)
-        shipping_address = ShippingAddress(**vd['shipping_address']) if sa else None
+        # shipping_address = ShippingAddress(**vd['shipping_address']) if sa else None
+        shipping_address = ShippingAddress(**sa) if sa else None
         self.handle_payment(order_number, total)
 
         # TODO add initial order status

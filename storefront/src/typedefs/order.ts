@@ -18,3 +18,14 @@ export type TOrder = {
         token: string
     }
 }
+
+
+export type TOrderSubTotalProps = {
+    label: string
+    amount: number 
+}
+
+export type TShippingDetailsRowProps = {
+    field: string
+    value: string
+}

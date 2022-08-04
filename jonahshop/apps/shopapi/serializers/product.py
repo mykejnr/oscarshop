@@ -1,16 +1,17 @@
 from oscar.core.loading import get_model, get_class
-from oscar.core.thumbnails import get_thumbnailer
-
 from rest_framework import serializers
 
 from drf_spectacular.utils import extend_schema_field
 from drf_spectacular.types import OpenApiTypes
 
+from apps.core.mixins import ProductImageMixin
+
 
 Selector = get_class('partner.strategy', 'Selector')
+Product = get_model('catalogue', 'Product')
 
 
-class ProductSerializer(serializers.HyperlinkedModelSerializer):
+class ProductSerializer(serializers.HyperlinkedModelSerializer, ProductImageMixin):
     price = serializers.SerializerMethodField()
     availability = serializers.SerializerMethodField()
     image = serializers.SerializerMethodField()
@@ -20,10 +21,14 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
         self.strategy = Selector().strategy()
 
     class Meta:
-        model = get_model('catalogue', 'Product')
+        model = Product
         fields= [
             'url', 'id', 'title', 'rating', 'price', 'availability', 'is_parent', 'image',
         ]
+
+    @property
+    def request(self):
+        return self.context.get('request')
 
     def get_purchase_info(self, obj):
         if obj.is_parent:
@@ -37,8 +42,5 @@ class ProductSerializer(serializers.HyperlinkedModelSerializer):
         return self.get_purchase_info(obj).availability.is_available_to_buy
 
     @extend_schema_field(OpenApiTypes.URI)
-    def get_image(self, obj):
-        source = obj.primary_image().original
-        thumbnail = get_thumbnailer().generate_thumbnail(source, size="200x200")
-        request = self.context.get('request')# request.build_absolute_uri()
-        return request.build_absolute_uri(thumbnail.url)
+    def get_image(self, obj: Product):
+        return self.get_primary_image(obj)

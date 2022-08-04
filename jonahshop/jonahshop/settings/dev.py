@@ -103,9 +103,11 @@ INSTALLED_APPS = [
 
     "corsheaders",
     "channels",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -258,3 +260,6 @@ if DEBUG:
         "http://127.0.0.1:3000",
     )
     CORS_ALLOW_CREDENTIALS = True
+
+
+INTERNAL_IPS = ('127.0.0.1', )

@@ -66,6 +66,7 @@ class BasketTestMixin:
                 'first_name': 'Michael',
                 'last_name': 'Mensah',
                 'line1': 'NT #9 Blk D, New Brosankro',
+                'line4': 'Bechem',
                 'state': 'Ahafo',
                 'country': 'GH',
                 'title': 'Mr',
@@ -291,7 +292,7 @@ class CheckoutTestCase(BasketTestMixin, APITestCase):
         response = self.client.post(self.checkout_url, data=data, format='json')
         order = response.data
         order = Order.objects.get(pk=order['id'])
-        uuid = urlsafe_base64_encode(force_bytes(order.email))
+        uuid = urlsafe_base64_encode(force_bytes(order.number))
         token = simple_token.make_token(order.email)
 
         email_mock.assert_called_with(order.email, uuid, token, ANY)
@@ -309,7 +310,7 @@ class CheckoutTestCase(BasketTestMixin, APITestCase):
 
         order_data = response.data
         order = Order.objects.get(pk=order_data['id'])
-        uuid = urlsafe_base64_encode(force_bytes(order.email))
+        uuid = urlsafe_base64_encode(force_bytes(order.number))
         token = simple_token.make_token(order.email)
 
         anon = order_data['anonymous']

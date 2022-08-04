@@ -1,8 +1,10 @@
-from django.utils.http import urlsafe_base64_encode
+from collections import namedtuple
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 
 from oscar.core.loading import get_model, get_class
 from oscar.apps.basket.models import Basket as OscarBasket
+from oscar.apps.order.abstract_models import AbstractOrder
 
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
@@ -18,6 +20,8 @@ from apps.shopapi.serializers import (
 )
 from apps.core.token import simple_token
 from apps.shopapi.tasks import send_order_details
+from apps.shopapi.serializers.order import AnonymousOrderSerialer, OrderLineSerializer
+from apps.shipping.serializers.address import ShippingAddressSerializer
 # Create your views here.
 
 
@@ -25,6 +29,14 @@ Product = get_model('catalogue', 'Product')
 Basket = get_model('basket', 'Basket')
 Order = get_model('order', 'Order')
 OrderPlacementMixin = get_class("checkout.mixins", "OrderPlacementMixin")
+
+
+OrderCredentials = namedtuple('OrderCredentials', ['uuid', 'token'])
+
+def generate_anonymous_order_credentials(order: AbstractOrder) -> OrderCredentials:
+        uuid = urlsafe_base64_encode(force_bytes(order.number))
+        token = simple_token.make_token(order.email)
+        return OrderCredentials(uuid, token)
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -134,14 +146,13 @@ class BasketViewSet(
         order  = cser.save()
         oser = OrderSerializer(order, context=ctx)
 
-        uid = urlsafe_base64_encode(force_bytes(order.email))
-        token = simple_token.make_token(order.email)
+        cred = generate_anonymous_order_credentials(order)
 
         base_url = request.build_absolute_uri('/order')
-        send_order_details.delay(order.email, uid, token, base_url) # celery task
+        send_order_details.delay(order.email, cred.uuid, cred.token, base_url) # celery task
         
         data = oser.data
-        data['anonymous'] = {'uuid': uid, 'token': token}
+        data['anonymous'] = {'uuid': cred.uuid, 'token': cred.token}
 
         return Response(data)
 
@@ -155,4 +166,39 @@ class OrderViewSet(
 
     @action(detail=False, methods=['post'])
     def anonymous(self, request):
-        pass
+        ctx = {'request': request}
+        aser = AnonymousOrderSerialer(data=request.data)
+        if not aser.is_valid():
+            return Response(aser.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        vd = aser.validated_data
+        order_number = urlsafe_base64_decode(vd['uuid']).decode()
+
+        try:
+            order = (Order.objects
+                        .select_related('shipping_address')
+                        .get(number=order_number))
+            lines = order.lines.prefetch_related('product__images').all()
+        except Order.DoesNotExist:
+            msg = 'Order does not exist'
+            return Response({'message': msg}, status=status.HTTP_404_NOT_FOUND)
+
+        if not simple_token.check_token(order.email, vd['token']):
+            msg = "Bad Token"
+            return Response({'message': msg}, status=status.HTTP_403_FORBIDDEN)
+
+        o_data = OrderSerializer(order, context=ctx).data
+        s_data = ShippingAddressSerializer(order.shipping_address, context=ctx).data
+        l_data = OrderLineSerializer(lines, many=True, context=ctx).data
+
+        o_data.update({
+            'shipping_address': s_data,
+            'lines': l_data
+        })
+        return Response(o_data)
+        # self._lines = (
+        #     self.lines
+        #     .select_related('product', 'stockrecord')
+        #     .prefetch_related(
+        #         'attributes', 'product__images')
+        #     .order_by(self._meta.pk.name))

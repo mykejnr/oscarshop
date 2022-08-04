@@ -52,6 +52,7 @@ class CheckoutSerializerTestCase(APITestCase):
                 'first_name': 'Michael',
                 'last_name': 'Mensah',
                 'line1': 'NT #9 Blk D, New Brosankro',
+                'line4': 'Bechem',
                 'state': 'Ahafo',
                 'country': 'GH',
                 'title': 'Mr',
