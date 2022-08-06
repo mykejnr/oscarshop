@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import { CSSTransition } from 'react-transition-group';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useMatch } from 'react-router-dom';
 import { FaSearch, FaUser, FaShoppingBag } from 'react-icons/fa';
 import { IconType } from "react-icons";
 import { getUser, toggleMiniCart, toggleMiniUser } from "../actions";
@@ -77,8 +77,14 @@ export const MiniButtons = () => {
 
 
 const Header = () => {
+  let hStyles = ''
+
+  if (useMatch("/account/*")) {
+    hStyles = 'fixed left-0 right-0 top-0'
+  }
+
   return(
-    <header className="header shadow z-50">
+    <header className={`bg-white header z-50 shadow ${hStyles}`}>
       <div className="border-box px-10 flex justify-between max-w-7xl mx-auto">
         <div className="logo my-auto text-sky-500 font-bold text-lg">
           <Link to='/'>JonaShop</Link>

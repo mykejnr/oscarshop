@@ -14,6 +14,12 @@ const Home = lazy(() => import('./routes/Home'));
 const Catalog = lazy(() => import('./routes/Catalog'));
 const Checkout = lazy(() => import("./routes/Checkout"));
 const Order = lazy(() => import("./routes/Order"));
+const User = lazy(() => import("./routes/user"))
+const Dashboard = lazy(() => import("./routes/user/Dashboard"));
+const UserOrderList = lazy(() => import("./routes/user/OrderList"))
+const AddressBook = lazy(() => import("./routes/user/AddressBook"))
+const UserProfile = lazy(() => import("./routes/user/UserProfile"))
+const UserOrder = lazy(() => import("./routes/user/UserOrder"))
 
 
 const Layout = () => (
@@ -32,6 +38,7 @@ const Layout = () => (
 )
 
 const App = () => (
+  //TODO 404 page
   <RecoilRoot>
   <div className="bg-white text-neutral-500">
     <Router>
@@ -41,6 +48,13 @@ const App = () => (
               <Route index element={<Home />} />
               <Route path="catalogue" element={<Catalog />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="account" element={<User/>} >
+                <Route index element={<Dashboard />} />
+                <Route path="orders" element={<UserOrderList />} />
+                <Route path="orders/:orderNumber" element={<UserOrder />} />
+                <Route path="address" element={<AddressBook />} />
+                <Route path="profile" element={<UserProfile />} />
+              </Route>
               <Route path="order/:uuid/:token" element={<Order />} />
               <Route path="reset-password/:uuid/:token" element={<ResetPassword/>} />
               <Route path="activate-email/:uuid/:token" element={<ActivateEmailPage />} />

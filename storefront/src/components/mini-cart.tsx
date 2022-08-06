@@ -137,7 +137,7 @@ const MiniCart = () => {
     const ui = useSelector((state: IRootState) => state.ui)
 
     let conStyles = ui.miniCartVisible ? "right-0 shadow-2xl" : "-right-96 shadow-none"
-    const styles = `fixed bg-gray-100 inset-y-0 ${conStyles} bg-white
+    const styles = `fixed z-[100] bg-gray-100 inset-y-0 ${conStyles} bg-white
                     w-96 rounded-l-lg
                     transition-[right] duration-500 ease-out`
 

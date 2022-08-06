@@ -1,6 +1,7 @@
 import { useDispatch, useSelector } from "react-redux"
 import { MdEmail } from 'react-icons/md';
 import { FaUser, FaShoppingBag, FaKey, FaSignOutAlt } from 'react-icons/fa';
+import { AiFillDashboard } from 'react-icons/ai';
 import { IconType } from 'react-icons';
 import { buttonStyles } from "./button";
 import { formatPrice } from "../utils";
@@ -16,6 +17,7 @@ type ActionButtonProps = {
 }
 
 const ActionButton = ({text, Icon, onClick}: ActionButtonProps) => (
+  //TODO change to links instead of buttons
   <button
     className="flex gap-4 items-center mb-4 hover:text-accent-400"
     onClick={onClick}
@@ -56,10 +58,14 @@ const Cart = () => {
 
 const SignedInUser = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   return (
     <>
       <Cart />
+      <div className="px-5 pt-4 border-b">
+        <ActionButton text="Dashboard" Icon={AiFillDashboard} onClick={() => navigate('/account')} />
+      </div>
       <div className="p-5">
         <ActionButton text="Edit profile" Icon={FaUser} onClick={() => {}} />
         <ActionButton text="Change email address" Icon={MdEmail} onClick={() => dispatch(showDialog('change_email'))} />

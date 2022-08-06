@@ -13,3 +13,11 @@ export type ButtonSpinnerProps = {
     text: string
     spinText: string
 }
+
+
+// wrapped <td> element props
+export type TDProps = {
+    isth?: boolean // is <th> element
+    className?: string
+    children: any
+}

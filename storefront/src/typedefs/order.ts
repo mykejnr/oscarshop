@@ -48,7 +48,16 @@ export interface IOrderLine {
     image: string,
 }
 
-export interface IAnonymousOrder extends TOrder {
+export interface IDetailedOrder extends TOrder {
     shipping_address: IShippingAddress
     lines: IOrderLine[]
+}
+
+// kept here for legacy reason
+export interface IAnonymousOrder extends  IDetailedOrder{}
+
+export type TOrderViewProps = {
+    order?: IDetailedOrder
+    requestError?: string
+    retryFetch: () => void
 }

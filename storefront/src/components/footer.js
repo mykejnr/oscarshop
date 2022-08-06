@@ -64,7 +64,7 @@ const SocialMedia = () => (
 
 
 const Footer = () => (
-  <footer className="footer border border-gray-300 border-box py-12">
+  <footer className="footer relative z-50 bg-white border border-gray-300 border-box py-12">
     <div className="max-w-5xl mx-auto flex justify-between">
       <SiteLinks />
       <div>
