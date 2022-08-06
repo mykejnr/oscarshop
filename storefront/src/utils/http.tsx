@@ -38,9 +38,13 @@ export const makeRequest = (method: string) => async (props: RequestArgs) => {
         if (!response.ok && ie && !ie.includes(response.status)) {
             // check if the json has a message attribute else
             // we show a generic message
-            const json = (await response.json()) || {}
-            const message = json.message || "Request failed. Please try again later."
-            dispatch && dispatch(showPopup({title: 'Server Error', message}))
+            let message: string = "Request failed. Please try again later." // generic message
+            try {
+                const json = (await response.json()) || {} // might throw an error (res.json)
+                message = json.message || message
+            } finally {
+                dispatch && dispatch(showPopup({title: 'Server Error', message}))
+            }
         }
         // return the cloned version so the caller can also do
         // response.json() again

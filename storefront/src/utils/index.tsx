@@ -33,3 +33,8 @@ export const nameToLabel = (inputName: string): string => {
   const capitalized = name.charAt(0).toUpperCase() + name.slice(1);
   return capitalized.replace('_', " ")
 }
+
+
+export const createRawHtml = (rawHtml: string) => ({
+  __html: rawHtml
+})

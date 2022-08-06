@@ -3,6 +3,7 @@ import { TFieldInputProps, TRadioOption } from '../forms/base'
 import { TSubmitFormErrors } from './form'
 import { APIName } from '../api'
 import { RecoilState } from 'recoil'
+import { IShippingAddress as AIShippingAddress } from './address'
 
 
 export type TFormSection = 'ship_address' | 'ship_method' | 'pay_method' | 'review' | 'nosection'
@@ -30,17 +31,8 @@ export type TNavButtonProps = {
   submitting: boolean,
 }
 
-export interface IShippingAddress extends Record<string, string> {
-  first_name: string,
-  last_name: string,
-  state: string,
-  line4: string,
-  line1: string,
-  postcode: string,
-  phone_number: string,
-  country: string,
-  notes: string,
-}
+// kept here for legacy sake
+export interface IShippingAddress extends AIShippingAddress {}
 
 export interface ICheckoutFormData extends Record<string, string | Record<string, string>>  {
   guest_email: string,

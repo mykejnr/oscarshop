@@ -84,7 +84,7 @@ test("reqeustChangePassword() - Should return errors on failure", async () => {
 test("Should display success message after change - Integration", async () => {
     jest.spyOn(user_utils, 'requestChangePassword').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: true})
+            rs({ok: true, status: 200})
         })
     )
 
@@ -112,7 +112,7 @@ test("Should display success message after change - Integration", async () => {
 test("Should clear user from store after change - Integration", async () => {
     jest.spyOn(user_utils, 'requestChangePassword').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: true})
+            rs({ok: true, status: 200})
         })
     )
 
@@ -148,7 +148,7 @@ test("Should clear cart from store after change - Integration", async () => {
     )
     jest.spyOn(user_utils, 'requestChangePassword').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: true})
+            rs({ok: true, status: 200})
         })
     )
 

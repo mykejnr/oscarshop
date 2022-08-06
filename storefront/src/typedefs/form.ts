@@ -23,5 +23,6 @@ export type TSubmitFormErrors<TFormData> = {
 export type TSubmitFormResponse<TFormData, TResponseData = Record<string, string>> = {
     ok: boolean,
     errors?: TSubmitFormErrors<TFormData>,
-    response_data?: TResponseData
+    response_data?: TResponseData,
+    status: number
 }

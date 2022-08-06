@@ -11,15 +11,17 @@ export const requestSignup = async (data: ISignupData, dispatch: Dispatch): Prom
 
     const response = await post({url, ignore_errors, dispatch, data,})
     const json = await response.json()
+    const status = response.status
 
     if (response.ok) {
         dispatch(signup(json))
         return {
+            status,
             ok: true
         }
     }
 
-    let res = {ok: false, errors: undefined}
+    let res = {ok: false, errors: undefined, status}
 
     if (response.status === 400) {
         res.errors = json
@@ -35,18 +37,19 @@ export const requestLogin = async (data: ILoginFormData, dispatch: Dispatch): Pr
 
     const response = await post({url, ignore_errors, dispatch, data})
     const json = await response.json()
+    const status = response.status
 
     if (response.ok) {
         dispatch(login(json))
-        return {ok: true}
+        return {ok: true, status}
     }
     if (response.status === 400) {
-        return {ok: false, errors: json}
+        return {ok: false, errors: json, status}
     }
     if (response.status === 401) { // Authentication failed
-        return {ok: false, errors: {password: [json['message']]}}
+        return {status, ok: false, errors: {password: [json['message']]}}
     }
-    return {ok: false}
+    return {ok: false, status}
 } 
 
 export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: Dispatch): Promise<TSubmitFormResponse<IForgotPasswordData>> =>{
@@ -55,16 +58,17 @@ export const requestPasswordReset = async (data: IForgotPasswordData, dispatch: 
 
     const response = await post({url, ignore_errors, dispatch, data})
     const json = await response.json()
+    const status = response.status
     if (response.ok) {
-        return {ok: true, response_data: json}
+        return {ok: true, response_data: json, status}
     }
     if (response.status === 400) {
-        return {ok: false, errors: json}
+        return {ok: false, errors: json, status}
     }
     if (response.status === 404) {
-        return {ok: false, errors: {email: [json.message]}}
+        return {ok: false, errors: {email: [json.message]}, status}
     }
-    return {ok: false}
+    return {ok: false, status}
 }
 
 export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: Dispatch): Promise<TSubmitFormResponse<IResetPasswordData>> => {
@@ -72,7 +76,8 @@ export const confirmPasswordReset = async (data: IResetPasswordData, dispatch: D
     const ignore_errors = [ 400 ]
 
     const response = await post({url, ignore_errors, dispatch, data})
-    const res = {ok: response.ok, errors: undefined}
+    const status = response.status
+    const res = {ok: response.ok, errors: undefined, status}
 
     if (response.status === 400) {
         res.errors = await response.json()
@@ -87,7 +92,8 @@ export const requestChangePassword = async (data: IChangePasswordData, dispatch:
     const ignore_errors = [ 400 ]
 
     const response = await post({url, ignore_errors, dispatch, data})
-    const res = {ok: response.ok, errors: undefined}
+    const status = response.status
+    const res = {ok: response.ok, errors: undefined, status}
 
     if (response.status === 400) {
         res.errors = await response.json()
@@ -102,7 +108,8 @@ export const requestChangeEmail = async (data: IChangeEmailData, dispatch: Dispa
     const ignore_errors = [ 400 ]
 
     const response = await post({url, ignore_errors, dispatch, data})
-    const res = {ok: response.ok, errors: undefined, response_data: undefined}
+    const status = response.status
+    const res = {status, ok: response.ok, errors: undefined, response_data: undefined}
 
     if (response.ok) {
         res.response_data = await response.json()
@@ -119,7 +126,8 @@ export const requestActivateEmail = async (data: IActivateEmailData, dispatch: D
     const ignore_errors = [ 400 ]
 
     const response = await post({url, ignore_errors, dispatch, data})
-    const res = {ok: response.ok, errors: undefined, response_data: undefined}
+    const status = response.status
+    const res = {status, ok: response.ok, errors: undefined, response_data: undefined}
 
     if (response.ok) {
         const json = await response.json()

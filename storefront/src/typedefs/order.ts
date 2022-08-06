@@ -1,3 +1,10 @@
+import { IShippingAddress } from "./address"
+
+export interface IAnonOrderCredentials {
+    uuid: string,
+    token: string,
+}
+
 export type TOrder = {
     url: string,
     number: string,
@@ -13,10 +20,7 @@ export type TOrder = {
     status: string,
     guest_email: string,
     date_placed: string,
-    anonymous?: {
-        uuid: string,
-        token: string
-    }
+    anonymous?: IAnonOrderCredentials
 }
 
 
@@ -27,5 +31,24 @@ export type TOrderSubTotalProps = {
 
 export type TShippingDetailsRowProps = {
     field: string
-    value: string
+    value: string,
+    isHtml?: boolean
+}
+
+export interface IOrderLine {
+    id: number,
+    title: string,
+    quantity: number,
+    unit_price_incl_tax: number,
+    unit_price_excl_tax: number,
+    line_price_incl_tax: number,
+    line_price_excl_tax: number,
+    line_price_before_discounts_incl_tax: number,
+    line_price_before_discounts_excl_tax: number,
+    image: string,
+}
+
+export interface IAnonymousOrder extends TOrder {
+    shipping_address: IShippingAddress
+    lines: IOrderLine[]
 }

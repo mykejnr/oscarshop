@@ -97,7 +97,7 @@ test("confirmResetPassword() - Should return errors on failure", async () => {
 test("Should display success message and redirect after reset - Integration", async () => {
     jest.spyOn(user_utils, 'confirmPasswordReset').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: true})
+            rs({ok: true, status: 200})
         })
     )
 

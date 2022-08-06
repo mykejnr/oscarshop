@@ -83,6 +83,7 @@ test("Should display success message after change - Integration", async () => {
     jest.spyOn(user_utils, 'requestChangeEmail').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
             rs({
+                status: 200,
                 ok: true,
                 response_data: {message}
             })

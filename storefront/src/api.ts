@@ -29,6 +29,7 @@ const API = {
     activateEmail: '/api/user/activate_email/',
     shippingMethods: '/api/shipping/methods/',
     paymentMethods: '/api/payment/methods/',
+    anonymousOrder: '/api/order/anonymous/',
 }
 export type APIName = keyof typeof API
 

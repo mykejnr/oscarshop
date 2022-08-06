@@ -8,8 +8,15 @@ export const submitForm = async <TFormData, TResponseData = Record<string, strin
     const url = getApi(url_name)
 
     const response = await post({url, ignore_errors, dispatch, data})
-    const json = await response.json()
-    const res: TSubmitFormResponse<TFormData, TResponseData> = {ok: response.ok}
+    let json: any = undefined
+    try {
+        json = await response.json()
+    } catch { // perhaps there is no data
+    }
+    const res: TSubmitFormResponse<TFormData, TResponseData> = {
+        ok: response.ok,
+        status: response.status
+    }
 
     if (response.ok) {
         res.response_data = json

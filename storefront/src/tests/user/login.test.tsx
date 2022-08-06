@@ -132,7 +132,7 @@ test("Should update store with user on success - Integration", async () => {
     jest.spyOn(user_utils, 'requestLogin').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
             dispatch(login(profile))
-            rs({ok: true})
+            rs({ok: true, status: 200})
         })
     )
     renderLoginForm();
@@ -165,7 +165,7 @@ test("Should render errors on login failed - Integration", async () => {
     )
     jest.spyOn(user_utils, 'requestLogin').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
-            rs({ok: false, errors: err_res})
+            rs({ok: false, errors: err_res, status: 500})
         })
     )
     renderLoginForm();
@@ -206,7 +206,7 @@ test("Should reload basket after login", async () => {
     jest.spyOn(user_utils, 'requestLogin').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
             dispatch(login(profile))
-            rs({ok: true})
+            rs({ok: true, status: 200})
         })
     )
     renderLoginForm();

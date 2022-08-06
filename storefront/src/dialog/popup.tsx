@@ -1,10 +1,6 @@
 import { useDispatch, useSelector } from "react-redux"
 import { showPopup } from "../actions"
-
-
-const createRawHtml = (rawHtml: string) => ({
-  __html: rawHtml
-})
+import { createRawHtml } from "../utils"
 
 export const PopupMessage = () => {
   const dispatch = useDispatch()

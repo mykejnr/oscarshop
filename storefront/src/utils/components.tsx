@@ -31,7 +31,7 @@ export const ButtonSpinner = (props: ButtonSpinnerProps) => {
 
 
 export const ModelessLoading = ({text}: {text: string}) => (
-  <div className='flex gap-2 align-middle bg-gray-50 border border-gray-200 p-1 text-sm w-max rounded'>
+  <div role="alert" aria-label="Loading" className='flex gap-2 align-middle bg-gray-50 border border-gray-200 p-1 text-sm w-max rounded'>
     <Spinner />
     <span>{text}</span>
   </div>
@@ -39,13 +39,16 @@ export const ModelessLoading = ({text}: {text: string}) => (
 
 
 export const Failed = ({text, action, actionText}: FailedProps) => (
-  <div>
-    <div className='flex gap-2 align-middle bg-red-50 border border-red-200 text-red-600 p-1 text-sm w-max rounded'>
+  <div data-testid="failed-retry-container">
+    <div role='alert' className='flex gap-2 align-middle bg-red-50 border border-red-200 text-red-600 p-1 text-sm w-max rounded'>
       <BiError size={20} />
       <span>{text}</span>
     </div>
-    <button onClick={action} type='button' className='button' data-testid='failed-retry'>
+    <button onClick={action} type='button' className='mx-auto mt-5 button w-[120px]' data-testid='failed-retry'>
       {actionText || 'Try again'}
     </button>
   </div>
 )
+
+
+export const FaileRtry = Failed

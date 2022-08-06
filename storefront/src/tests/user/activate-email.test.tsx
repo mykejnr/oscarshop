@@ -128,6 +128,7 @@ test("Should display success message and redirect after reset - Integration", as
     jest.spyOn(user_utils, 'requestActivateEmail').mockImplementation(
         (data, dispatch) => new Promise((rs, rj) => {
             rs({
+                status: 200,
                 ok: true,
                 response_data: {message}
             })

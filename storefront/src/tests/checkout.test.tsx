@@ -188,7 +188,7 @@ test("reqeustCheckout() - Should return errors on failure", async () => {
 test("Should clear basket from store after checkout - Integration", async () => {
     jest.spyOn(request_utils, 'submitForm').mockImplementation(
         ({data, dispatch}) => new Promise((rs, rj) => {
-            rs({ok: true, response_data: getOrder()})
+            rs({ok: true, response_data: getOrder(), status: 200})
         })
     )
     const cartSpy = jest.spyOn(cart_reduder, 'clearCart')
@@ -207,6 +207,7 @@ test("Should render shipping address errors if checkout fails - Ingegration", as
         ({data, dispatch}) => new Promise((rs, rj) => {
             rs({
                 ok: false,
+                status: 500,
                 errors: {
                     shipping_address: {first_name: [err_msg]}
                 }
@@ -329,7 +330,7 @@ test("Should refetch if payent methods on request fail - Integration", async () 
 test("Should show payment request page after successful order", async () => {
     jest.spyOn(request_utils, 'submitForm').mockImplementation(
         ({data, dispatch}) => new Promise((rs, rj) => {
-            rs({ok: true, response_data: getOrder()})
+            rs({ok: true, response_data: getOrder(), status: 200})
         })
     )
 

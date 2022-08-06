@@ -1,10 +1,12 @@
 import {render, fireEvent, screen } from '@testing-library/react'
+import { Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import {setupServer} from 'msw/node'
 import { rest } from 'msw';
 
 import { getUser, resetState } from '../actions';
 import store from "../store/index";
+import { createMemoryHistory } from 'history';
 
 import { getApi } from '../api';
 import { fakeBasket, fakeUser } from './fakes';
@@ -37,7 +39,11 @@ afterAll(() => server.close())
 const renderHeader = () => (
   render(
     <Provider store={store}>
-        <MiniButtons />
+      <Router location="/" navigator={createMemoryHistory()}>
+        <Routes>
+          <Route path='/' element={<MiniButtons />} />
+        </Routes>
+      </Router>
     </Provider>
   )
 )
@@ -192,7 +198,7 @@ describe("User signup", () => {
         jest.spyOn(user_utils, 'requestSignup').mockImplementation(
             (data, dispatch) => new Promise((rs, rj) => {
                 dispatch(signup(profile))
-                rs({ok: true})
+                rs({ok: true, status:200})
             })
         )
         renderSignupForm();
@@ -220,6 +226,7 @@ describe("User signup", () => {
         jest.spyOn(user_utils, 'requestSignup').mockImplementation(
             (data, dispatch) => new Promise((rs, rj) => {
                 rs({
+                    status: 500,
                     ok: false,
                     errors: {
                         'email': [email_err],
@@ -318,7 +325,7 @@ describe("Initiate forgot password", () => {
             )
             jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
                 (data, dispatch) => new Promise((rs, rj) => {
-                    rs({ok: true, response_data: msg})
+                    rs({ok: true, response_data: msg, status: 200})
                 })
             )
             render(
@@ -349,7 +356,7 @@ describe("Initiate forgot password", () => {
             )
             jest.spyOn(user_utils, 'requestPasswordReset').mockImplementation(
                 (data, dispatch) => new Promise((rs, rj) => {
-                    rs({ok: false, errors: {email: [msg.message]}})
+                    rs({ok: false, errors: {email: [msg.message]}, status: 500})
                 })
             )
             render(
