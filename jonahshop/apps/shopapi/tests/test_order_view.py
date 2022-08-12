@@ -1,12 +1,14 @@
 import pytest
-import tempfile
 from django.conf import settings
+from django.urls import reverse
 from rest_framework.test import APIClient
+from rest_framework import status
 
 from oscar.core.loading import get_model
 from oscar.apps.order.models import Order as OsOrder, Line as OsOrderLine, ShippingAddress as OShippingAddress
 
 from apps.shopapi.views import OrderViewSet, generate_anonymous_order_credentials
+from apps.userapi.models import User
 
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -66,8 +68,30 @@ def order_data() -> dict:
 
 
 @pytest.fixture
-def order(order_data: dict, shipping_address) -> OsOrder:
-    return Order.objects.create(**order_data, shipping_address=shipping_address)
+def user():
+    return User.objects.create(email='testuser@mail.com', password='12345')
+
+# NOT a fixture
+def create_order(order_data, shipping_address, order_number=None, user=None): 
+    o_data = order_data
+    if order_number is not None:
+        o_data = order_data.copy()
+        o_data['number'] = order_number
+
+    o_data['user'] = user
+    return Order.objects.create(**o_data, shipping_address=shipping_address)
+
+
+@pytest.fixture
+def order(order_data: dict, shipping_address, user) -> OsOrder:
+    return Order.objects.create(**order_data, shipping_address=shipping_address, user=user)
+
+
+@pytest.fixture
+def order_list(order_data: dict, shipping_address, order, user):
+    order2 = create_order(order_data, shipping_address, '1000090', user=user)
+    order3 = create_order(order_data, shipping_address, '1000092', user=user)
+    return [order, order2, order3]
 
 
 @pytest.fixture
@@ -145,3 +169,59 @@ def test_anonymous_request_contains_order_lines(order_url, order_credentials, li
     line1.pop('id')
     line1.pop('image')
     assert line_data == line1
+
+
+# TESTING view.list ***************
+
+@pytest.fixture
+def test_client(user):
+    client = APIClient()
+    client.login(email=user.email, password='12345')
+    return client
+
+
+def test_rejects_request_for_unauthenticated_user():
+    response = APIClient().get(reverse('order-list'))
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_retrieve_list_of_orders(test_client, order_list):
+    response = test_client.get(reverse('order-list'))
+    data = response.data['results']
+
+    assert len(data) == len(order_list)
+    # retreive order number from both data and comber
+    numbers = set(map(lambda o: o.number, order_list))
+    numbers2 = set(map(lambda d: d['number'], data))
+
+    assert numbers == numbers2
+
+
+def test_retrieve_only_orders_belonging_to_user(test_client, order_list, order_data, shipping_address):
+    # create an order with no user
+    order_nouser = create_order(order_data, shipping_address, '3000090')
+
+    response = test_client.get(reverse('order-list'))
+    data = response.data['results']
+
+    numbers = list(map(lambda d: d['number'], data))
+
+    assert (order_nouser.number not in numbers)
+    assert len(data) == len(order_list)
+
+
+def test_retrieve_order(order, test_client):
+    response = test_client.get(reverse('order-detail', args=[order.number]))
+    assert order.number == response.data['number']
+
+
+def test_retreive_order_together_with_lines(order_lines, test_client):
+    order = order_lines[0].order
+    response = test_client.get(reverse('order-detail', args=[order.number]))
+    assert len(order_lines) == len(response.data['lines'])
+
+
+def test_cant_request_order_for_another_user(test_client, order_data, shipping_address):
+    order_nouser = create_order(order_data, shipping_address, '3001090')
+    response = test_client.get(reverse('order-detail', args=[order_nouser.number]))
+    assert response.status_code == status.HTTP_403_FORBIDDEN

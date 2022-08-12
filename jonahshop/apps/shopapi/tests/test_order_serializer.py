@@ -9,6 +9,7 @@ from oscar.apps.order.models import Order as OsOrder, Line as OsOrderLine
 
 from apps.shopapi.serializers import OrderSerializer
 from apps.shopapi.serializers.order import OrderLineSerializer
+from apps.shipping.serializers.address import ShippingAddressSerializer
 
 
 pytestmark = pytest.mark.django_db(transaction=True)
@@ -17,10 +18,42 @@ OrderLine: OsOrderLine = get_model('order', 'Line')
 ProductImage = get_model('catalogue', 'ProductImage')
 Product = get_model('catalogue', 'Product')
 ProductClass = get_model('catalogue', 'ProductClass')
+ShippingAddress = get_model("order", "ShippingAddress")
+Country = get_model("address", "Country")
 
 
 @pytest.fixture
-def order_data() -> dict:
+def shipping_data():
+    return {
+        'first_name': 'Michael',
+        'last_name': 'Mensah',
+        'line1': 'NT #9 Blk D, New Brosankro',
+        'line4': 'Bechem',
+        'state': 'Ahafo',
+        'country': 'GH',
+        'postcode': '+233',
+        'phone_number': '+233248352555',
+        'notes': 'Brosankro new town. Adjescent methodist church'
+    }
+
+
+@pytest.fixture
+def shipping_address(shipping_data: dict):
+    c = Country.objects.create(**{
+        "iso_3166_1_a2": "GH",
+        "iso_3166_1_a3": "GHA",
+        "iso_3166_1_numeric": "288",
+        "printable_name": "Ghana",
+        "name": "Republic of Ghana",
+    })
+    sd = shipping_data.copy()
+    sd['country'] = c
+    sa = ShippingAddress.objects.create(**sd)
+    return sa
+
+
+@pytest.fixture
+def order_data(shipping_address) -> dict:
     return {
         'number': '100087',
         'currency': 'GHC',
@@ -32,6 +65,7 @@ def order_data() -> dict:
         'shipping_code': 'GSD3324',
         'status': 'OPEN',
         'guest_email': 'mykejnr4@Gmail.com',
+        'shipping_address': shipping_address
     }
 
 
@@ -87,13 +121,24 @@ def order_line(line_data: dict, product_image, order):
     return OrderLine.objects.create(**ld)
 
 
-def test_serializes_order_data(order: OsOrder, order_data):
+def test_serializes_order_data(order: OsOrder, order_data: dict):
     oser = OrderSerializer(order)
     data = oser.data
     data.pop('id')
     data.pop('user')
     data.pop('date_placed')
+    # test serialized shipping address seperatly
+    data.pop('shipping_address')
+    order_data = order_data.copy()
+    order_data.pop('shipping_address')
+
     assert data == order_data
+
+
+def test_serializes_order_data_with_shipping_address(order: OsOrder, order_data: dict, shipping_data):
+    oser = OrderSerializer(order)
+    oser_shipping = oser.data['shipping_address']
+    assert oser_shipping == shipping_data
 
 
 # Order Line Serializer tests ########################

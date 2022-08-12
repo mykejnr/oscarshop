@@ -9,6 +9,8 @@ from oscar.apps.order.abstract_models import AbstractOrder
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+
 
 from apps.shopapi.serializers import (
     BasketSerializer,
@@ -21,7 +23,7 @@ from apps.shopapi.serializers import (
 from apps.core.token import simple_token
 from apps.shopapi.tasks import send_order_details
 from apps.shopapi.serializers.order import AnonymousOrderSerialer, OrderLineSerializer
-from apps.shipping.serializers.address import ShippingAddressSerializer
+from apps.shopapi.permissions import OrderViewPermission
 # Create your views here.
 
 
@@ -157,16 +159,30 @@ class BasketViewSet(
         return Response(data)
 
 
-class OrderViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet):
+class OrderViewSet(mixins.RetrieveModelMixin, mixins.ListModelMixin, viewsets.GenericViewSet):
 
-    queryset = Order.objects
+    permission_classes = [OrderViewPermission]
+    serializer_class = OrderSerializer
+    lookup_field = 'number'
+
+    def get_queryset(self):
+        qs = Order.objects.select_related('shipping_address')
+        if self.action == 'list':
+            # filter qs to only orders beloging to the current auth user
+            qs = qs.filter(user=self.request.user)
+        return  qs
+
+    def retrieve(self, request, *args, **kwargs):
+        return self.get_detail_response(self.get_object())
 
     @action(detail=False, methods=['post'])
     def anonymous(self, request):
-        ctx = {'request': request}
+        """
+        Allows an unauthenticated user to request for an order, provided
+        the request with the correct 'uuid' and 'token'
+        The 'uuid' and 'token' was sent to the user's email during the 
+        checkout stage.
+        """
         aser = AnonymousOrderSerialer(data=request.data)
         if not aser.is_valid():
             return Response(aser.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -175,10 +191,7 @@ class OrderViewSet(
         order_number = urlsafe_base64_decode(vd['uuid']).decode()
 
         try:
-            order = (Order.objects
-                        .select_related('shipping_address')
-                        .get(number=order_number))
-            lines = order.lines.prefetch_related('product__images').all()
+            order = self.get_queryset().get(number=order_number)
         except Order.DoesNotExist:
             msg = 'Order does not exist'
             return Response({'message': msg}, status=status.HTTP_404_NOT_FOUND)
@@ -187,15 +200,19 @@ class OrderViewSet(
             msg = "Bad Token"
             return Response({'message': msg}, status=status.HTTP_403_FORBIDDEN)
 
-        o_data = OrderSerializer(order, context=ctx).data
-        s_data = ShippingAddressSerializer(order.shipping_address, context=ctx).data
-        l_data = OrderLineSerializer(lines, many=True, context=ctx).data
+        return self.get_detail_response(order)
 
-        o_data.update({
-            'shipping_address': s_data,
-            'lines': l_data
-        })
-        return Response(o_data)
+    def get_detail_response(self, order: Order):
+        """
+        Return response for order detail view
+        """
+        ctx = {'request': self.request}
+        # Retrieve lines associated with this order
+        lines = order.lines.prefetch_related('product__images').all()
+        order_data = OrderSerializer(order, context=ctx).data
+        lines_data = OrderLineSerializer(lines, many=True, context=ctx).data
+        order_data['lines'] = lines_data
+        return Response(order_data)
         # self._lines = (
         #     self.lines
         #     .select_related('product', 'stockrecord')

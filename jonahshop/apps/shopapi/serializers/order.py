@@ -3,6 +3,7 @@ from oscar.apps.order.abstract_models import AbstractLine
 from rest_framework import serializers
 
 from apps.core.mixins import ProductImageMixin
+from apps.shipping.serializers.address import ShippingAddressSerializer
 
 
 Order = get_model('order', 'Order')
@@ -47,6 +48,8 @@ class OrderLineSerializer(serializers.ModelSerializer, ProductImageMixin):
 
 class OrderSerializer(serializers.ModelSerializer):
 
+    shipping_address = ShippingAddressSerializer()
+
     class Meta:
         model = Order
         fields= [
@@ -63,6 +66,7 @@ class OrderSerializer(serializers.ModelSerializer):
             'status',
             'guest_email',
             'date_placed',
+            'shipping_address'
         ]
 
 
