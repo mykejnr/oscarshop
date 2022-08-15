@@ -25,7 +25,6 @@ const ResetPassword = () => {
   }
 
   return (
-    <>
     <div className="flex justify-center py-20">
       <div>
         <div className="bg-accent-400 text-center p-5 text-white font-semibold">
@@ -39,7 +38,6 @@ const ResetPassword = () => {
         />
       </div>
     </div>
-    </>
   )
 }
 

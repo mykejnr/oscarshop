@@ -44,11 +44,13 @@ export const Failed = ({text, action, actionText}: FailedProps) => (
       <BiError size={20} />
       <span>{text}</span>
     </div>
-    <button onClick={action} type='button' className='mx-auto mt-5 button w-[120px]' data-testid='failed-retry'>
-      {actionText || 'Try again'}
-    </button>
+    {action !== null &&
+      <button onClick={action} type='button' className='mx-auto mt-5 button w-[120px]' data-testid='failed-retry'>
+        {actionText || 'Try again'}
+      </button>
+    }
   </div>
 )
 
 
-export const FaileRtry = Failed
+export const FailedRetry = Failed

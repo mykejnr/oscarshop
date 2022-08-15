@@ -1,8 +1,10 @@
-import { Link, Outlet, useMatch } from "react-router-dom"
+import { Link, Navigate, Outlet, useLocation, useMatch } from "react-router-dom"
 import { FaAddressBook, FaShoppingCart, FaUser} from 'react-icons/fa';
 import {  AiFillDashboard, AiOutlineFundView } from 'react-icons/ai';
 import { SideLinkProps } from "../../typedefs/useraccout";
 import { atom, useRecoilValue } from "recoil";
+import { useSelector } from "react-redux";
+import { ModelessLoading } from "../../utils/components";
 
 
 export const userPageTitleState = atom({
@@ -52,6 +54,31 @@ const SideBar = () => {
 
 const User = () => {
   const pageTitle = useRecoilValue(userPageTitleState)
+  const user = useSelector((state: IRootState) => state.user)
+  const location = useLocation()
+
+  // When the site first loads (or on page refresh), 
+  // components.header.MiniButton attempts to fetch the current
+  // session user. But before that, the state user.status is set to
+  // To NEW, to indicated that, we haven't attempted fetcing the user
+  // so we can't possibly conclude that they are not logged in.
+  if (user.status === 'NEW' || user.status === 'REQUESTING') {
+    return (
+      <div className="fixed inset-0 z-50">
+        <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+          <ModelessLoading text="Signing in . . .  " />
+        </div>
+      </div>
+    )
+  }
+
+  // At this stage user.status is set to 'REQUESTED'. so if user.auth is still
+  // false, the requested for the current session user failed. (AKA. they are 
+  // not loggged in)
+  if (!user.auth) {
+    return <Navigate to={'/login'} state={{from: location}} replace/>
+  }
+
   return (
     <div className="relative mt-[65px] bg-gray-100">
       <div className="fixed h-screen mt-[65px] left-0 w-[250px] top-0 bottom-0 bg-white">

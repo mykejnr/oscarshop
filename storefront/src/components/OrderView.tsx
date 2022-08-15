@@ -1,6 +1,6 @@
 import { IAnonymousOrder, IOrderLine, TOrderSubTotalProps, TOrderViewProps, TShippingDetailsRowProps } from "../typedefs/order"
 import { createRawHtml, formatPrice } from "../utils"
-import { FaileRtry, ModelessLoading } from "../utils/components"
+import { FailedRetry, ModelessLoading } from "../utils/components"
 import moment  from "moment"
 import { countries } from 'countries-list'
 
@@ -116,7 +116,7 @@ export const OrderView = (props: TOrderViewProps) => {
     <>
       {requestError ?
         <div className="flex justify-center my-20">
-          <FaileRtry text={requestError} actionText="Retry" action={retryFetch} />
+          <FailedRetry text={requestError} actionText="Retry" action={retryFetch} />
         </div> :
         (!order ?
           <div className="flex justify-center my-20">

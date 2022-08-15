@@ -9,6 +9,7 @@ export type TOrder = {
     url: string,
     number: string,
     basket: string,
+    items: number,
     user: string,
     currency: string,
     total_incl_tax: number,
@@ -48,16 +49,36 @@ export interface IOrderLine {
     image: string,
 }
 
-export interface IDetailedOrder extends TOrder {
+
+export interface IListedOrder extends TOrder {
     shipping_address: IShippingAddress
+}
+
+
+export interface IOrdersRequestResults {
+    count: number,
+    next: number | null,
+    previous: number | null,
+    results: IListedOrder[]
+}
+
+
+export interface IDetailedOrder extends IListedOrder {
     lines: IOrderLine[]
 }
 
+
 // kept here for legacy reason
 export interface IAnonymousOrder extends  IDetailedOrder{}
+
 
 export type TOrderViewProps = {
     order?: IDetailedOrder
     requestError?: string
     retryFetch: () => void
+}
+
+export type TOrderRowItemProps = {
+    order: IListedOrder,
+    index: number
 }

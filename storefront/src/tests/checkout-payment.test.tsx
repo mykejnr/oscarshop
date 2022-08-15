@@ -38,6 +38,7 @@ const getOrder = (): TOrder => ({
     number: '10003',
     basket: 'path/to/basket',
     user: '/path/to/user/',
+    items: 5,
     currency: 'GHS',
     total_excl_tax: 33.33,
     total_incl_tax: 36.33,

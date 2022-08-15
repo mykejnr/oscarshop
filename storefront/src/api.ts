@@ -30,6 +30,8 @@ const API = {
     shippingMethods: '/api/shipping/methods/',
     paymentMethods: '/api/payment/methods/',
     anonymousOrder: '/api/order/anonymous/',
+    orders: '/api/orders/',
+    orderDetails: '/api/orders/{param}/',
 }
 export type APIName = keyof typeof API
 

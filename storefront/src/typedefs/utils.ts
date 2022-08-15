@@ -1,6 +1,6 @@
 export type FailedProps = {
     text: string
-    action: () => void
+    action: null | (() => void)
     actionText?: string
 }
 

@@ -16,6 +16,7 @@ const getOrder = (): TOrder => ({
     url: '/api/path/to/order/',
     number: '10003',
     basket: 'path/to/basket',
+    items: 5,
     user: '/path/to/user/',
     currency: 'GHS',
     total_excl_tax: 33.33,
@@ -26,7 +27,7 @@ const getOrder = (): TOrder => ({
     shipping_code: 'code-for-shipping',
     status: 'SHIPPED',
     guest_email: 'mykejnr4@gmail.com',
-    date_placed: '06/06/2022',
+    date_placed: '2022-06-06',
 })
 
 

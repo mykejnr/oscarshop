@@ -10,7 +10,7 @@ type TDialogHeadProps = {
   title: string,
   Icon: IconType
 }
-type TDialogTuple = [() => JSX.Element, string, IconType]
+type TDialogTuple = [(props: any) => JSX.Element, string, IconType]
 export type TDialogName = keyof typeof dialogs
 // hack:... helps with type inference of type Record<T, T>
 const asRecord = <T extends Record<string, TDialogTuple>>(arg: T): T => arg

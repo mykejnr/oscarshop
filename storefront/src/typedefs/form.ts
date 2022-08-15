@@ -26,3 +26,13 @@ export type TSubmitFormResponse<TFormData, TResponseData = Record<string, string
     response_data?: TResponseData,
     status: number
 }
+
+/**
+ * A function that returns another function with will be called after
+ * successfully submiting a form
+ */
+export type TAfterSubmitOk = (message: string, dispatch: Dispatch ) => () => void
+
+export type TLoginFormProps = {
+    afterSubmitOk?: TAfterSubmitOk
+}

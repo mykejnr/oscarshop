@@ -8,6 +8,7 @@ import Dialog from "./dialog/dialog";
 import { PopupMessage } from "./dialog/popup";
 import ResetPassword from "./routes/ResetPassword";
 import ActivateEmailPage from "./routes/ActivateEmail";
+import { ModelessLoading } from "./utils/components";
 
 
 const Home = lazy(() => import('./routes/Home'));
@@ -20,6 +21,7 @@ const UserOrderList = lazy(() => import("./routes/user/OrderList"))
 const AddressBook = lazy(() => import("./routes/user/AddressBook"))
 const UserProfile = lazy(() => import("./routes/user/UserProfile"))
 const UserOrder = lazy(() => import("./routes/user/UserOrder"))
+const LoginPage = lazy(() => import("./routes/Login"))
 
 
 const Layout = () => (
@@ -37,17 +39,29 @@ const Layout = () => (
   </div>
 )
 
+const SuspensePage = () => (
+  <div className="fixed inset-0 z-50">
+    <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+      <ModelessLoading text="Fetching page . . .  " />
+    </div>
+  </div>
+)
+
 const App = () => (
   //TODO 404 page
   <RecoilRoot>
   <div className="bg-white text-neutral-500">
     <Router>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<SuspensePage />}>
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="catalogue" element={<Catalog />} />
               <Route path="checkout" element={<Checkout />} />
+              <Route path="order/:uuid/:token" element={<Order />} />
+              <Route path="reset-password/:uuid/:token" element={<ResetPassword/>} />
+              <Route path="activate-email/:uuid/:token" element={<ActivateEmailPage />} />
+              <Route path="login" element={<LoginPage />} />
               <Route path="account" element={<User/>} >
                 <Route index element={<Dashboard />} />
                 <Route path="orders" element={<UserOrderList />} />
@@ -55,9 +69,6 @@ const App = () => (
                 <Route path="address" element={<AddressBook />} />
                 <Route path="profile" element={<UserProfile />} />
               </Route>
-              <Route path="order/:uuid/:token" element={<Order />} />
-              <Route path="reset-password/:uuid/:token" element={<ResetPassword/>} />
-              <Route path="activate-email/:uuid/:token" element={<ActivateEmailPage />} />
             </Route>
           </Routes>
         </Suspense>

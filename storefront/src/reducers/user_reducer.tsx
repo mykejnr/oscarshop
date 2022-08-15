@@ -7,7 +7,8 @@ import { USER } from '../constants/action-types';
 // Shape of the reponse data from requesting for a
 // basket (cart) from the api
 const initialState: IUser = {
-    auth: false
+    auth: false,
+    status: 'NEW'
 }
 
 
@@ -42,11 +43,13 @@ export const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder.addCase(getUser.fulfilled, (state = initialState, action) => {
+      const status = 'REQUESTED'
         if (action.payload) {
+            state.status = status
             state.auth = true
             state.profile = action.payload
         } else {
-            return {auth: false}
+            return {auth: false, status}
         }
     })
     .addDefaultCase((state) => state)

@@ -4,6 +4,7 @@ import { useDispatch } from 'react-redux'
 import { fetchBasket, newMessage, showDialog, showPopup } from '../actions'
 import { logout } from '../reducers/user_reducer'
 import { clearCart } from '../reducers/cart_reducer'
+import { TLoginFormProps } from '../typedefs/form'
 
 
 const afterSubmitOk = (message: string, dispatch: (f: any) => any ) => () => {
@@ -30,8 +31,9 @@ const ForgotPassowrdButton = () => {
 }
 
 
-export const LoginForm = () => {
+export const LoginForm = (props: TLoginFormProps) => {
   const dispatch = useDispatch()
+  const afterSubmitCallback = props.afterSubmitOk || afterSubmitOk
   const formFields: TFormFields<ILoginFormData> = {
     email: {type: 'email', required: true},
     password: {type: 'password', required: true}
@@ -48,7 +50,7 @@ export const LoginForm = () => {
     <Form<ILoginFormData>
       fields={formFields}
       asyncSubmit={requestLogin}
-      afterSubmitOk={afterSubmitOk(msg, dispatch)}
+      afterSubmitOk={afterSubmitCallback(msg, dispatch)}
       getFields={getFields}
     />
   )

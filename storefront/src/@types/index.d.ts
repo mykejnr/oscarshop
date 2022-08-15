@@ -28,6 +28,7 @@ interface IGlobalState {
 }
 
 interface IUser {
+    status: 'NEW' | 'REQUESTING' | 'REQUESTED'
     auth: boolean
     profile?: {
         first_name: string,
