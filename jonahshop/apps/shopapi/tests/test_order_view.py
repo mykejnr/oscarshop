@@ -209,6 +209,16 @@ def test_retrieve_only_orders_belonging_to_user(test_client, order_list, order_d
     assert (order_nouser.number not in numbers)
     assert len(data) == len(order_list)
 
+# def test_return_a_204_for_empty_order_list(test_client):
+#     user = User.objects.create(email='anotheruser@mail.com', password='12345')
+#     client = APIClient()
+#     client.login(email=user.email, password='12345')
+#     response = client.get(reverse('order-list'))
+#     assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+# TESTING view.retreive (aka order details) ***************
+
 
 def test_retrieve_order(order, test_client):
     response = test_client.get(reverse('order-detail', args=[order.number]))
@@ -225,3 +235,8 @@ def test_cant_request_order_for_another_user(test_client, order_data, shipping_a
     order_nouser = create_order(order_data, shipping_address, '3001090')
     response = test_client.get(reverse('order-detail', args=[order_nouser.number]))
     assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+def test_return_a_404_for_not_found_order(test_client):
+    response = test_client.get(reverse('order-detail', args=['1111111kkk']))
+    assert response.status_code == status.HTTP_404_NOT_FOUND

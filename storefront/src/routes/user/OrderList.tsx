@@ -41,8 +41,7 @@ const OrderItem = (props: TOrderRowItemProps) => {
     <tr data-testid="order-row-item" className={''+exStyles}>
       <TD><Link to={order.number} className="text-accent-400 font-semibold">{order.number}</Link></TD>
       <TD>{order.status}</TD>
-      <TD>{order.total_incl_tax}</TD>
-      <TD>{order.items}</TD>
+      <TD className="text-right">{order.total_incl_tax}</TD>
       <TD>{strAddress(order.shipping_address)}</TD>
       <TD>{fmtDate(order.date_placed)}</TD>
     </tr>
@@ -74,7 +73,6 @@ const OrderList = () => {
           <TD isth>Order number</TD>
           <TD isth>Status</TD>
           <TD isth>Order Total</TD>
-          <TD isth>Items</TD>
           <TD isth>Shipping address</TD>
           <TD isth>Date</TD>
         </tr>
@@ -145,11 +143,15 @@ const UserOrderList = () => {
   return (
     <div className="bg-white rounded-lg p-7">
       {requestError ?
-        <FailedRetry text={requestError.errorMsg} actionText="Retry" action={retryAction} /> :
+        <div className="mx-auto w-max">
+          <FailedRetry text={requestError.errorMsg} actionText="Retry" action={retryAction} />
+        </div> :
         <>
           {orderList ?
             <OrderList /> :
-            <ModelessLoading text="Retrieving contents. Just a moment..." />
+            <div className="mx-auto w-max">
+              <ModelessLoading text="Retrieving contents. Just a moment . . ." />
+            </div>
           }
         </>
       }

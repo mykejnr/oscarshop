@@ -1,5 +1,5 @@
 import { Link, Navigate, Outlet, useLocation, useMatch } from "react-router-dom"
-import { FaAddressBook, FaShoppingCart, FaUser} from 'react-icons/fa';
+import { FaAddressBook, FaShoppingCart, FaUserEdit, FaUserCircle} from 'react-icons/fa';
 import {  AiFillDashboard, AiOutlineFundView } from 'react-icons/ai';
 import { SideLinkProps } from "../../typedefs/useraccout";
 import { atom, useRecoilValue } from "recoil";
@@ -36,16 +36,17 @@ const SideLink = (props: SideLinkProps) => {
 
 
 const SideBar = () => {
+  const user = useSelector((state: IRootState) => state.user)
   return (
     <div className="pb-5">
-      <div className="py-4 px-5 mb-5 text-ellipsis overflow-hidden whitespace-nowrap border-b font-semibold">
-        Michael Kwasi Mensah Yeboah Junior
+      <div className="flex items-center gap-3 py-4 px-5 mb-5 text-ellipsis overflow-hidden whitespace-nowrap border-b font-semibold">
+        <span><FaUserCircle size={25}/></span><span>{user.profile?.first_name}</span>
       </div>
       <div className="px-5">
         <SideLink to="" text="Dashboard" Icon={AiFillDashboard} />
         <SideLink to="orders" text="Orders" Icon={FaShoppingCart} match="/account/orders/*" />
         <SideLink to="address" text="Address Book" Icon={FaAddressBook} />
-        <SideLink to="profile" text="Edit Profile" Icon={FaUser} />
+        <SideLink to="profile" text="Edit Profile" Icon={FaUserEdit} />
       </div>
     </div>
   )

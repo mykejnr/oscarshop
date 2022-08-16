@@ -3,7 +3,6 @@ import {render, fireEvent, screen, RenderResult} from '@testing-library/react'
 import { rest } from 'msw';
 import {setupServer} from 'msw/node'
 import { getApi } from "../../api";
-import store from "../../store";
 import { Provider } from "react-redux";
 import { RecoilRoot } from "recoil";
 import { act } from "react-dom/test-utils";
@@ -11,6 +10,8 @@ import UserOrderList from "../../routes/user/OrderList";
 import { Router, Routes, Route } from 'react-router-dom';
 import { createMemoryHistory, MemoryHistory } from 'history';
 import { fmtDate, strAddress } from "../../utils";
+import { createStore } from "@reduxjs/toolkit";
+import rootReducer from "../../reducers";
 
 
 const getOrder = (number: string = '10003'): IListedOrder => ({
@@ -65,6 +66,7 @@ afterAll(() => server.close())
 
 
 const renderOrder = (history: MemoryHistory = createMemoryHistory()): [MemoryHistory, RenderResult] => {
+  const store = createStore(rootReducer)
   const url = '/account/orders/'
   history.push(url)
   const renderResult = render(
@@ -97,11 +99,12 @@ test("Should request and render orders on mount", async () => {
 
 
 test("Should render cell data correctly", async () => {
-  const orders = getOrders(['100034', '1234534']).results
+  const orders_result = getOrders(['100034', '1234534'])
+  const orders = orders_result.results
   const order = orders[0]
   server.use(
     rest.get(getApi('orders'), (req, res, ctx) => {
-      return res(ctx.json(orders))
+      return res(ctx.json(orders_result))
     })
   )
   await act(() => renderOrder() as never)
@@ -116,7 +119,7 @@ test("Should render cell data correctly", async () => {
 
 
 test("Should navigate to order details page on click", async () => {
-  const orders = getOrders(['100034', '1234534']).results
+  const orders = getOrders(['100034', '1234534'])
   server.use(
     rest.get(getApi('orders'), (req, res, ctx) => {
       return res(ctx.json(orders))
@@ -130,7 +133,7 @@ test("Should navigate to order details page on click", async () => {
   const anchorElem = row.children[0].children[0]
   await act(() => fireEvent.click(anchorElem) as never)
 
-  expect(history.location.pathname).toBe(`/account/orders/${orders[0].number}`)
+  expect(history.location.pathname).toBe(`/account/orders/${orders.results[0].number}`)
 })
 
 

@@ -58,7 +58,7 @@ const ShippingDetails = ({order}: {order: IAnonymousOrder}) => {
         <ShippingDetailsRow field="Firstname" value={sh.first_name} />
         <ShippingDetailsRow field="Lastname" value={sh.last_name} />
         <ShippingDetailsRow field="Country" value={country.name} />
-        <ShippingDetailsRow field="Phone Number" value={`(${sh.postcode}) ${sh.phone_number}`} />
+        <ShippingDetailsRow field="Phone Number" value={`${sh.phone_number}`} />
         <ShippingDetailsRow field="State/Region" value={sh.state} />
         <ShippingDetailsRow field="City" value={sh.line4} />
         <ShippingDetailsRow field="Address" value={sh.line1} />
