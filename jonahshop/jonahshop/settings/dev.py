@@ -25,7 +25,7 @@ AUTH_USER_MODEL = 'userapi.USER'
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*pbv_&k!9*6lkcf$e@v0$eic%cpyg4=)ftd9nffmvk@i#^=kwn'
+SECRET_KEY = os.environ["OSSHOP_SECRET_KEY"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
