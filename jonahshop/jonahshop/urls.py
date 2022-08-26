@@ -22,11 +22,13 @@ from rest_framework import routers
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from apps.shopapi import views
+from apps.userapi import views as user_views
 
 router = routers.DefaultRouter()
-router.register(r'products', views.ProductViewSet, 'product')
-router.register(r'basket', views.BasketViewSet, basename='basket')
-router.register(r'orders', views.OrderViewSet, basename='order')
+router.register(r'basket', views.BasketViewSet, basename='basket') # basket, not, baskets -- see viewset for reason
+router.register(r'products', views.ProductViewSet, 'products')
+router.register(r'orders', views.OrderViewSet, basename='orders')
+router.register(r'addresses', user_views.UserAddressViewset, basename='address')
 
 urlpatterns = [
     # path('admin/', admin.site.urls),

@@ -9,7 +9,6 @@ from oscar.apps.order.abstract_models import AbstractOrder
 from rest_framework import viewsets, status, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 
 
 from apps.shopapi.serializers import (

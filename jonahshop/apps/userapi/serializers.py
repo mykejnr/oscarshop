@@ -1,15 +1,24 @@
+from dataclasses import fields
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth import get_user_model
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 
+from oscar.apps.address.abstract_models import AbstractUserAddress
+from oscar.core.loading import get_model
+
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from apps.userapi.token import ChangeEmailTokenGenerator
+from apps.shipping.serializers.address import ShippingAddressSerializer
+
 
 User = get_user_model()
+
+
+UserAddress: AbstractUserAddress = get_model("address", "UserAddress")
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -169,3 +178,22 @@ class ActivateEmailSerializer(serializers.Serializer):
         vd = super().validated_data
         vd['new_email'] = self._new_email
         return vd
+
+
+class UserAddressSerializer(ShippingAddressSerializer):
+    class Meta:
+        model = UserAddress
+        fields = ShippingAddressSerializer.Meta.fields + [
+            'title',
+            'user',
+            'is_default_for_shipping',
+            'num_orders_as_shipping_address',
+        ]
+        read_only_fields = ['num_orders_as_shipping_address', 'user']
+
+    @property
+    def request(self):
+        return self.context.get('request')
+
+    def save(self, **kwargs):
+        return super().save(**kwargs, user=self.request.user)

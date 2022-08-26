@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react"
 import { useDispatch } from "react-redux"
-import { Link } from "react-router-dom"
 import { atom, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil"
 import { userPageTitleState } from "."
 import { getApi } from "../../api"
-import { IListedOrder, IOrdersRequestResults, TOrderRowItemProps } from "../../typedefs/order"
-import { TDProps } from "../../typedefs/utils"
+import Table from "../../tables"
+import { IListedOrder, IOrdersRequestResults } from "../../typedefs/order"
+import { TTableConfig } from "../../typedefs/tables"
 import { fmtDate, strAddress } from "../../utils"
 import { FailedRetry, ModelessLoading } from "../../utils/components"
 import { get } from "../../utils/http"
@@ -17,38 +17,6 @@ const orderListState = atom<IListedOrder[] | undefined>({
 })
 
 
-
-const TD = (props: TDProps) => {
-  const {isth, children, className} = props
-  const styles = `border text-left px-2 py-1 ${className || ""}`
-
-  if (isth) {
-    return <th className={styles + "font-semibold"}>{children}</th>
-  }
-  return (
-    <td className={styles}>{children}</td>
-  )
-}
-
-
-const OrderItem = (props: TOrderRowItemProps) => {
-  const {index, order} = props
-  // elem:nth-of type is not enabled by default, so we do this
-  // quick hack instead, of enabling it
-  const exStyles = !(index % 2) ? 'bg-gray-50' : ''
-
-  return (
-    <tr data-testid="order-row-item" className={''+exStyles}>
-      <TD><Link to={order.number} className="text-accent-400 font-semibold">{order.number}</Link></TD>
-      <TD>{order.status}</TD>
-      <TD className="text-right">{order.total_incl_tax}</TD>
-      <TD>{strAddress(order.shipping_address)}</TD>
-      <TD>{fmtDate(order.date_placed)}</TD>
-    </tr>
-  )
-}
-
-
 const EmptyOrderList = () => {
   //TODO 1. server side implementation of empty order list, should return status 204 - no content
   //TODO 2. design component
@@ -58,31 +26,30 @@ const EmptyOrderList = () => {
 }
 
 
-
 const OrderList = () => {
-  const orders = useRecoilValue(orderListState) || []
+  const orderList = useRecoilValue(orderListState) || []
 
-  if (orders.length === 0) {
+  const config: TTableConfig<IListedOrder> = {
+    headers: ['Order Number', 'Status', 'Order Total', 'Shipping Address', 'Date'],
+    rows: orderList || [],
+    getRow: (row: IListedOrder) => ({
+      cells: [
+        row.number,
+        row.status,
+        row.total_incl_tax.toString(),
+        strAddress(row.shipping_address),
+        fmtDate(row.date_placed)
+      ],
+      link: row.number
+    })
+  }
+
+  if (orderList.length === 0) {
     return <EmptyOrderList />
   }
 
   return (
-    <table className="w-full">
-      <thead>
-        <tr>
-          <TD isth>Order number</TD>
-          <TD isth>Status</TD>
-          <TD isth>Order Total</TD>
-          <TD isth>Shipping address</TD>
-          <TD isth>Date</TD>
-        </tr>
-      </thead>
-      <tbody>
-        {
-          orders.map((order, idx) => <OrderItem key={order.number} index={idx} order={order} />)
-        }
-      </tbody>
-    </table>
+    <Table<IListedOrder> {...config} />
   )
 }
 

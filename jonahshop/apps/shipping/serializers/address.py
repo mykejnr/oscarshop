@@ -10,7 +10,7 @@ class ShippingAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = ShippingAddress
         fields = [
-            'first_name', 'last_name', 'phone_number', 'state',
+            'id', 'first_name', 'last_name', 'phone_number', 'state',
             'line4', 'line1', 'country', 'postcode', 'notes'
         ]
         extra_kwargs = {

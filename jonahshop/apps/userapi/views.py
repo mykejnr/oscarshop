@@ -3,11 +3,14 @@ from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_encode
 from django.utils.encoding import force_bytes
 
-from rest_framework import status
+from rest_framework import status, generics, viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+
+from oscar.apps.address.abstract_models import AbstractUserAddress
+from oscar.core.loading import get_model
 
 from apps.userapi.serializers import (
     ActivateEmailSerializer,
@@ -17,14 +20,17 @@ from apps.userapi.serializers import (
     LoginSerializer,
     ResetPasswordSerializer,
     SignupSerializer,
+    UserAddressSerializer,
     UserSerializer
 )
 
 from apps.userapi.tasks import send_reset_email, send_change_email_message
 from apps.userapi.token import ChangeEmailTokenGenerator
+from apps.core.permissions import AuthOwnerPermission
 
 
 User = get_user_model()
+UserAddress: AbstractUserAddress = get_model("address", "UserAddress")
 
 
 def _login_user(request, user):
@@ -195,3 +201,17 @@ def activate_email(request):
         'message': message,
         'new_email': request.user.email
     })
+
+
+class UserAddressViewset(
+    generics.ListCreateAPIView,
+    generics.RetrieveUpdateDestroyAPIView,
+    viewsets.GenericViewSet):
+
+    serializer_class = UserAddressSerializer
+    permission_classes = [AuthOwnerPermission]
+
+    def get_queryset(self):
+        qs = UserAddress.objects
+        qs = qs.filter(user = self.request.user) if self.action == 'list' else qs.all()
+        return qs
